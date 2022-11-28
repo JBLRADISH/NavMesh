@@ -4,7 +4,7 @@ using UnityEngine;
 public static class MathTool
 {
     public static double Epsilon = 1e-6;
-    
+
     public static Vector3 Normal(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         Vector3 p1p2 = p2 - p1;
@@ -50,61 +50,93 @@ public static class MathTool
             return false;
         }
     }
-    
-    public static float GetPointToSegmentDistSq(int px, int pz, int ax, int az, int bx, int bz)
-    {
-        float dABx = bx - ax;
-        float dABz = bz - az;
-        float dAPx = px - ax;
-        float dAPz = pz - az;
 
-        float seLenSq = dABx * dABx + dABz * dABz;
+    public static float GetPointToSegmentDistSq(Vector2Int a, Vector2Int b, Vector2Int p)
+    {
+        Vector2Int ab = b - a;
+        Vector2Int ap = p - a;
+
+        float seLenSq = ab.sqrMagnitude;
 
         if (seLenSq == 0)
         {
-            return dAPx * dAPx + dAPz * dAPz;
+            return ap.sqrMagnitude;
         }
 
-        //先计算SP在SE上投影长度(点乘) |SP| * |SE| * cosθ = SP.SE 投影长度(|SP| * cosθ) = SP.SE / |SE|
-        //t = 投影长度/|SE| = SP.SE / |SE| * |SE|
-        float t = (dAPx * dABx + dAPz * dABz) / seLenSq;
+        //先计算AP在AB上投影长度(点乘) |AP| * |AB| * cosθ = AP.AB 投影长度(|AP| * cosθ) = AP.AB / |AB|
+        //t = 投影长度/|AB| = AP.AB / |AB| * |AB|
+        float t = (ap.x * ab.x + ap.y * ab.y) / seLenSq;
 
         t = Mathf.Clamp01(t);
 
-        float distx = ax + t * dABx - px;
-        float distz = az + t * dABz - pz;
+        float distx = a.x + t * ab.x - p.x;
+        float distz = a.y + t * ab.y - p.y;
 
         return distx * distx + distz * distz;
     }
 
     //计算轮廓有向面积(顶点顺时针面积为负，逆时针面积为正)
     //有向面积 = 0.5 * ∑(x(i) * z(i + 1) - x(i + 1) * z(i)) 
-    public static int GetContourSignedArea(List<int> simplifiedVerts)
+    public static int GetContourSignedArea(List<Vector4Int> simplifiedVerts)
     {
         int area = 0;
-        int count = simplifiedVerts.Count / 4;
+        int count = simplifiedVerts.Count;
         for (int i = 0; i < count; i++)
         {
-            int cx = simplifiedVerts[i * 4];
-            int cz = simplifiedVerts[i * 4 + 2];
-            int nx = simplifiedVerts[(i + 1) % count * 4];
-            int nz = simplifiedVerts[(i + 1) % count * 4 + 2];
-            area += cx * nz - nx * cz;
+            Vector2Int c = simplifiedVerts[i];
+            Vector2Int n = simplifiedVerts[(i + 1) % count];
+            area += c.x * n.y - n.x * c.y;
         }
 
         return (area + 1) / 2;
     }
-    
+
     //判断C是否在AB右边
     //AB叉乘AC 如果AC在AB逆时针方向值为正 顺时针方向值为负
-    public static bool Right(int ax, int az, int bx, int bz, int cx, int cz)
+    public static bool Right(Vector2Int a, Vector2Int b, Vector2Int c)
     {
-        return (bx - ax) * (cz - az) - (cx - ax) * (bz - az) < 0;
+        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y) < 0;
     }
-    
+
     //判断C是否在AB右边或者是AB上
-    public static bool RightOrOn(int ax, int az, int bx, int bz, int cx, int cz)
+    public static bool RightOrOn(Vector2Int a, Vector2Int b, Vector2Int c)
     {
-        return (bx - ax) * (cz - az) - (cx - ax) * (bz - az) <= 0;
+        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y) <= 0;
+    }
+
+    //判断点P是否在ABC组成的圆锥里
+    public static bool InCone(Vector2Int a, Vector2Int b, Vector2Int c, Vector2Int p)
+    {
+        //如果点A是凸顶点
+        if (RightOrOn(b, a, c))
+        {
+            return Right(a, p, b) && Right(p, a, c);
+        }
+
+        //否则点A是凹顶点
+        return !RightOrOn(a, p, c) && !RightOrOn(p, a, b);
+    }
+
+    public static bool IntersectCountourSegment(Vector2Int a, Vector2Int b, int index, List<Vector4Int> simplifiedVerts)
+    {
+        int count = simplifiedVerts.Count;
+        for (int i = 0; i < count; i++)
+        {
+            int next = index == count - 1 ? 0 : index + 1;
+            if (i == index || next == index)
+            {
+                continue;
+            }
+
+            Vector2Int c = simplifiedVerts[i];
+            Vector2Int d = simplifiedVerts[next];
+
+            if (a == c || a == d || b == c || b == d)
+            {
+                continue;
+            }
+        }
+
+        return false;
     }
 }

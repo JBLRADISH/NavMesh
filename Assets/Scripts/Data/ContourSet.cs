@@ -5,7 +5,7 @@ public class ContourSet
     public float VoxelSize { get; private set; }
     public AABB Bounds { get; private set; }
     public List<Contour> Contours = new List<Contour>();
-    
+
     public ContourSet(OpenHeightField openHeightField)
     {
         VoxelSize = openHeightField.VoxelSize;

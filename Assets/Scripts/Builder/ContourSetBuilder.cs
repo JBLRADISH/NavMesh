@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class ContourSetBuilder
 {
-    private static List<int> originVerts = new List<int>(256);
-    private static List<int> simplifiedVerts = new List<int>(64);
+    private static List<Vector4Int> originVerts = new List<Vector4Int>(64);
+    private static List<Vector4Int> simplifiedVerts = new List<Vector4Int>(16);
 
     public ContourSet Build(OpenHeightField openHeightField)
     {
@@ -75,7 +75,7 @@ public class ContourSetBuilder
 
                 RemoveVerticalSegments(simplifiedVerts);
 
-                if (simplifiedVerts.Count >= 12)
+                if (simplifiedVerts.Count >= 3)
                 {
                     contourSet.AddContour(new Contour(span.Region, originVerts, simplifiedVerts));
                 }
@@ -87,7 +87,7 @@ public class ContourSetBuilder
         return contourSet;
     }
 
-    private void GenerateOriginContour(OpenHeightSpan startSpan, int startWidthIdx, int startDepthIdx, int startDir, List<int> originVerts)
+    private void GenerateOriginContour(OpenHeightSpan startSpan, int startWidthIdx, int startDepthIdx, int startDir, List<Vector4Int> originVerts)
     {
         OpenHeightSpan span = startSpan;
         int dir = startDir;
@@ -123,10 +123,7 @@ public class ContourSetBuilder
                     neighborRegion = neighborSpan.Region;
                 }
 
-                originVerts.Add(px);
-                originVerts.Add(py);
-                originVerts.Add(pz);
-                originVerts.Add(neighborRegion);
+                originVerts.Add(new Vector4Int(px, py, pz, neighborRegion));
 
                 span.Flag &= ~(1 << dir);
                 dir = (dir + 1) & 0x3;
@@ -191,13 +188,13 @@ public class ContourSetBuilder
         return maxFloor;
     }
 
-    private void GenerateSimplifiedContour(List<int> originVerts, List<int> simplifiedVerts)
+    private void GenerateSimplifiedContour(List<Vector4Int> originVerts, List<Vector4Int> simplifiedVerts)
     {
         bool island = true;
 
-        for (int i = 0; i < originVerts.Count; i += 4)
+        for (int i = 0; i < originVerts.Count; i++)
         {
-            if (originVerts[i + 3] != 0)
+            if (originVerts[i].w != 0)
             {
                 island = false;
                 break;
@@ -206,56 +203,38 @@ public class ContourSetBuilder
 
         if (island)
         {
-            int ldx = originVerts[0];
-            int ldy = originVerts[1];
-            int ldz = originVerts[2];
-            int ldi = 0;
-            int rtx = originVerts[0];
-            int rty = originVerts[1];
-            int rtz = originVerts[2];
-            int rti = 0;
-            for (int i = 4; i < originVerts.Count; i += 4)
+            Vector4Int ld = originVerts[0];
+            ld.w = 0;
+            Vector4Int rt = originVerts[0];
+            rt.w = 0;
+            for (int i = 1; i < originVerts.Count; i++)
             {
-                int x = originVerts[i];
-                int y = originVerts[i + 1];
-                int z = originVerts[i + 2];
-                if (x < ldx || (x == ldx && z < ldz))
+                Vector4Int vert = originVerts[i];
+                if (vert.x < ld.x || vert.x == ld.x && vert.z < ld.z)
                 {
-                    ldx = x;
-                    ldy = y;
-                    ldz = z;
-                    ldi = i / 4;
+                    ld = vert;
+                    ld.w = i;
                 }
 
-                if (x > rtx || (x == rtx && z > rtz))
+                if (vert.x > rt.x || vert.x == rt.x && vert.z > rt.z)
                 {
-                    rtx = x;
-                    rty = y;
-                    rtz = z;
-                    rti = i / 4;
+                    rt = vert;
+                    rt.w = i;
                 }
             }
 
-            simplifiedVerts.Add(ldx);
-            simplifiedVerts.Add(ldy);
-            simplifiedVerts.Add(ldz);
-            simplifiedVerts.Add(ldi);
-
-            simplifiedVerts.Add(rtx);
-            simplifiedVerts.Add(rty);
-            simplifiedVerts.Add(rtz);
-            simplifiedVerts.Add(rti);
+            simplifiedVerts.Add(ld);
+            simplifiedVerts.Add(rt);
         }
         else
         {
-            for (int i = 0; i < originVerts.Count; i += 4)
+            for (int i = 0; i < originVerts.Count; i++)
             {
-                if (originVerts[i + 3] != originVerts[(i + 4) % originVerts.Count + 3])
+                if (originVerts[i].w != originVerts[(i + 1) % originVerts.Count].w)
                 {
-                    simplifiedVerts.Add(originVerts[i]);
-                    simplifiedVerts.Add(originVerts[i + 1]);
-                    simplifiedVerts.Add(originVerts[i + 2]);
-                    simplifiedVerts.Add(i / 4);
+                    Vector4Int vert = originVerts[i];
+                    vert.w = i;
+                    simplifiedVerts.Add(vert);
                 }
             }
         }
@@ -263,43 +242,43 @@ public class ContourSetBuilder
         Douglas_Peucker(originVerts, simplifiedVerts);
         SplitTooLongEdges(originVerts, simplifiedVerts);
 
-        int originCount = originVerts.Count / 4;
-        int simplifiedCount = simplifiedVerts.Count / 4;
+        int originCount = originVerts.Count;
+        int simplifiedCount = simplifiedVerts.Count;
         for (int i = 0; i < simplifiedCount; i++)
         {
-            int originIndex = (simplifiedVerts[i * 4 + 3] + 1) % originCount;
-            simplifiedVerts[i * 4 + 3] = originVerts[originIndex * 4 + 3];
+            int originIndex = (simplifiedVerts[i].w + 1) % originCount;
+            Vector4Int vert = simplifiedVerts[i];
+            vert.w = originVerts[originIndex].w;
+            simplifiedVerts[i] = vert;
         }
     }
 
-    private void Douglas_Peucker(List<int> originVerts, List<int> simplifiedVerts)
+    private void Douglas_Peucker(List<Vector4Int> originVerts, List<Vector4Int> simplifiedVerts)
     {
-        int originCount = originVerts.Count / 4;
-        int simplifiedCount = simplifiedVerts.Count / 4;
+        int originCount = originVerts.Count;
+        int simplifiedCount = simplifiedVerts.Count;
         int start = 0;
 
         while (start < simplifiedCount)
         {
             int end = (start + 1) % simplifiedCount;
 
-            int sx = simplifiedVerts[start * 4];
-            int sz = simplifiedVerts[start * 4 + 2];
-            int si = simplifiedVerts[start * 4 + 3];
+            Vector2Int s = simplifiedVerts[start];
+            int si = simplifiedVerts[start].w;
 
-            int ex = simplifiedVerts[end * 4];
-            int ez = simplifiedVerts[end * 4 + 2];
-            int ei = simplifiedVerts[end * 4 + 3];
+            Vector2Int e = simplifiedVerts[end];
+            int ei = simplifiedVerts[end].w;
 
             int curIndex = (si + 1) % originCount;
             float maxDistSq = 0;
 
             int insertIndex = -1;
 
-            if (originVerts[curIndex * 4 + 3] == 0)
+            if (originVerts[curIndex].w == 0)
             {
                 while (curIndex != ei)
                 {
-                    float distSq = MathTool.GetPointToSegmentDistSq(originVerts[curIndex * 4], originVerts[curIndex * 4 + 2], sx, sz, ex, ez);
+                    float distSq = MathTool.GetPointToSegmentDistSq(s, e, originVerts[curIndex]);
                     if (distSq > maxDistSq)
                     {
                         maxDistSq = distSq;
@@ -312,11 +291,10 @@ public class ContourSetBuilder
 
             if (insertIndex != -1 && maxDistSq > 1.3f * 1.3f)
             {
-                simplifiedVerts.Insert((start + 1) * 4, originVerts[insertIndex * 4]);
-                simplifiedVerts.Insert((start + 1) * 4 + 1, originVerts[insertIndex * 4 + 1]);
-                simplifiedVerts.Insert((start + 1) * 4 + 2, originVerts[insertIndex * 4 + 2]);
-                simplifiedVerts.Insert((start + 1) * 4 + 3, insertIndex);
-                simplifiedCount = simplifiedVerts.Count / 4;
+                Vector4Int vert = originVerts[insertIndex];
+                vert.w = insertIndex;
+                simplifiedVerts.Insert(start + 1, vert);
+                simplifiedCount = simplifiedVerts.Count;
             }
             else
             {
@@ -325,33 +303,30 @@ public class ContourSetBuilder
         }
     }
 
-    private void SplitTooLongEdges(List<int> originVerts, List<int> simplifiedVerts)
+    private void SplitTooLongEdges(List<Vector4Int> originVerts, List<Vector4Int> simplifiedVerts)
     {
-        int originCount = originVerts.Count / 4;
-        int simplifiedCount = simplifiedVerts.Count / 4;
+        int originCount = originVerts.Count;
+        int simplifiedCount = simplifiedVerts.Count;
         int start = 0;
 
         while (start < simplifiedCount)
         {
             int end = (start + 1) % simplifiedCount;
 
-            int sx = simplifiedVerts[start * 4];
-            int sz = simplifiedVerts[start * 4 + 2];
-            int si = simplifiedVerts[start * 4 + 3];
+            Vector2Int s = simplifiedVerts[start];
+            int si = simplifiedVerts[start].w;
 
-            int ex = simplifiedVerts[end * 4];
-            int ez = simplifiedVerts[end * 4 + 2];
-            int ei = simplifiedVerts[end * 4 + 3];
+            Vector2Int e = simplifiedVerts[end];
+            int ei = simplifiedVerts[end].w;
 
             int insertIndex = -1;
 
             int curIndex = (start + 1) % originCount;
 
-            if (originVerts[curIndex * 4 + 3] == 0)
+            if (originVerts[curIndex].w == 0)
             {
-                int dx = ex - sx;
-                int dz = ez - sz;
-                if (dx * dx + dz * dz > 12.0f * 12.0f)
+                int distSq = (e - s).sqrMagnitude;
+                if (distSq > 12.0f * 12.0f)
                 {
                     int indexDist = ei < si ? ei + (originCount - si) : ei - si;
                     insertIndex = (si + indexDist / 2) % originCount;
@@ -360,11 +335,10 @@ public class ContourSetBuilder
 
             if (insertIndex != -1)
             {
-                simplifiedVerts.Insert((start + 1) * 4, originVerts[insertIndex * 4]);
-                simplifiedVerts.Insert((start + 1) * 4 + 1, originVerts[insertIndex * 4 + 1]);
-                simplifiedVerts.Insert((start + 1) * 4 + 2, originVerts[insertIndex * 4 + 2]);
-                simplifiedVerts.Insert((start + 1) * 4 + 3, insertIndex);
-                simplifiedCount = simplifiedVerts.Count / 4;
+                Vector4Int vert = originVerts[insertIndex];
+                vert.w = insertIndex;
+                simplifiedVerts.Insert(start + 1, vert);
+                simplifiedCount = simplifiedVerts.Count;
             }
             else
             {
@@ -373,21 +347,18 @@ public class ContourSetBuilder
         }
     }
 
-    private void RemoveVerticalSegments(List<int> simplifiedVerts)
+    private void RemoveVerticalSegments(List<Vector4Int> simplifiedVerts)
     {
         for (int i = 0; i < simplifiedVerts.Count;)
         {
-            int next = (i + 4) % simplifiedVerts.Count;
-            if (simplifiedVerts[i] == simplifiedVerts[next] && simplifiedVerts[i + 2] == simplifiedVerts[next + 2])
+            int next = (i + 1) % simplifiedVerts.Count;
+            if ((Vector2Int) simplifiedVerts[i] == (Vector2Int) simplifiedVerts[next])
             {
-                simplifiedVerts.Remove(i);
-                simplifiedVerts.Remove(i);
-                simplifiedVerts.Remove(i);
-                simplifiedVerts.Remove(i);
+                simplifiedVerts.RemoveAt(i);
             }
             else
             {
-                i += 4;
+                i++;
             }
         }
     }
@@ -407,17 +378,21 @@ public class ContourSetBuilder
 
         contourSet.Contours.RemoveAll(x => holes.Contains(x));
 
-        foreach (var contour in contourSet.Contours)
+        foreach (var hole in holes)
         {
-            foreach (var hole in holes)
+            foreach (var contour in contourSet.Contours)
             {
-                if (contour.Region == hole.Region)
+                if (hole.Region == contour.Region)
                 {
                     contour.Holes.Add(hole);
                     SetLeftDownIndex(hole);
+                    break;
                 }
             }
+        }
 
+        foreach (var contour in contourSet.Contours)
+        {
             contour.Holes.Sort((x, y) =>
             {
                 if (x.LDx == y.LDx)
@@ -433,9 +408,23 @@ public class ContourSetBuilder
             foreach (var hole in contour.Holes)
             {
                 int cur = hole.LDi;
-                for (int i = 0; i < hole.SimplifiedCount; i++)
+                for (int i = 0; i < hole.SimplifiedVerts.Count; i++)
                 {
+                    Vector2Int p = hole.SimplifiedVerts[cur];
+                    for (int j = 0; j < contour.SimplifiedVerts.Count; j++)
+                    {
+                        int pre = j == 0 ? contour.SimplifiedVerts.Count - 1 : j - 1;
+                        int next = j == contour.SimplifiedVerts.Count - 1 ? 0 : j + 1;
+                        Vector2Int a = hole.SimplifiedVerts[j];
+                        Vector2Int b = hole.SimplifiedVerts[pre];
+                        Vector2Int c = hole.SimplifiedVerts[next];
+                        if (MathTool.InCone(a, b, c, p))
+                        {
+                            hole.HoleToContours.Add(new Contour.HoleToContour {ContourIndex = j, Dist = (a - p).sqrMagnitude});
+                        }
+                    }
 
+                    hole.HoleToContours.Sort((x, y) => x.Dist - y.Dist);
                 }
             }
         }
@@ -443,19 +432,18 @@ public class ContourSetBuilder
 
     private void SetLeftDownIndex(Contour hole)
     {
-        int ldx = hole.SimplifiedVerts[0];
-        int ldz = hole.SimplifiedVerts[2];
-        int ldi = 0;
-        for (int i = 1; i < hole.SimplifiedCount; i++)
+        Vector4Int ld = hole.SimplifiedVerts[0];
+        ld.w = 0;
+        for (int i = 1; i < hole.SimplifiedVerts.Count; i++)
         {
-            int x = hole.SimplifiedVerts[i * 4];
-            int z = hole.SimplifiedVerts[i * 4 + 2];
-            if (x < ldx || x == ldx && z < ldz)
+            Vector4Int vert = hole.SimplifiedVerts[i];
+            if (vert.x < ld.x || vert.x == ld.x && vert.z < ld.z)
             {
-                ldi = i;
+                ld = vert;
+                ld.w = i;
             }
         }
 
-        hole.LDi = ldi;
+        hole.LDi = ld.w;
     }
 }

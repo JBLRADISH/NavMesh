@@ -3,22 +3,30 @@
 public class Contour
 {
     public int Region;
-    public List<int> OriginVerts;
-    public List<int> SimplifiedVerts;
+    public List<Vector4Int> OriginVerts;
+    public List<Vector4Int> SimplifiedVerts;
     public List<Contour> Holes = new List<Contour>();
-
-    public int OriginCount => OriginVerts.Count / 4;
-    public int SimplifiedCount => SimplifiedVerts.Count / 4;
-
-    public Contour(int region, List<int> originVerts, List<int> simplifiedVerts)
+    
+    public Contour(int region, List<Vector4Int> originVerts, List<Vector4Int> simplifiedVerts)
     {
         Region = region;
-        OriginVerts = new List<int>(originVerts);
-        SimplifiedVerts = new List<int>(simplifiedVerts);
+        OriginVerts = new List<Vector4Int>(originVerts);
+        SimplifiedVerts = new List<Vector4Int>(simplifiedVerts);
     }
-    
-    //Hole
+
+    #region Hole
+
     public int LDi;
-    public int LDx => SimplifiedVerts[LDi];
-    public int LDz => SimplifiedVerts[LDi + 2];
+    public int LDx => SimplifiedVerts[LDi].x;
+    public int LDz => SimplifiedVerts[LDi].z;
+
+    public class HoleToContour
+    {
+        public int ContourIndex;
+        public int Dist;
+    }
+
+    public List<HoleToContour> HoleToContours = new List<HoleToContour>();
+
+    #endregion
 }
