@@ -56,16 +56,16 @@ public static class MathTool
         Vector2Int ab = b - a;
         Vector2Int ap = p - a;
 
-        float seLenSq = ab.sqrMagnitude;
+        float abLenSq = ab.sqrMagnitude;
 
-        if (seLenSq == 0)
+        if (abLenSq == 0)
         {
             return ap.sqrMagnitude;
         }
 
         //先计算AP在AB上投影长度(点乘) |AP| * |AB| * cosθ = AP.AB 投影长度(|AP| * cosθ) = AP.AB / |AB|
         //t = 投影长度/|AB| = AP.AB / |AB| * |AB|
-        float t = (ap.x * ab.x + ap.y * ab.y) / seLenSq;
+        float t = (ap.x * ab.x + ap.y * ab.y) / abLenSq;
 
         t = Mathf.Clamp01(t);
 

@@ -415,9 +415,9 @@ public class ContourSetBuilder
                     {
                         int pre = j == 0 ? contour.SimplifiedVerts.Count - 1 : j - 1;
                         int next = j == contour.SimplifiedVerts.Count - 1 ? 0 : j + 1;
-                        Vector2Int a = hole.SimplifiedVerts[j];
-                        Vector2Int b = hole.SimplifiedVerts[pre];
-                        Vector2Int c = hole.SimplifiedVerts[next];
+                        Vector2Int a = contour.SimplifiedVerts[j];
+                        Vector2Int b = contour.SimplifiedVerts[pre];
+                        Vector2Int c = contour.SimplifiedVerts[next];
                         if (MathTool.InCone(a, b, c, p))
                         {
                             hole.HoleToContours.Add(new Contour.HoleToContour {ContourIndex = j, Dist = (a - p).sqrMagnitude});
