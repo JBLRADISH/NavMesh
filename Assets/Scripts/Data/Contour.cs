@@ -3,10 +3,10 @@
 public class Contour
 {
     public int Region;
+    //原始顶点不包含空洞的顶点
     public List<Vector4Int> OriginVerts;
     public List<Vector4Int> SimplifiedVerts;
-    public List<Contour> Holes = new List<Contour>();
-    
+
     public Contour(int region, List<Vector4Int> originVerts, List<Vector4Int> simplifiedVerts)
     {
         Region = region;
@@ -15,7 +15,9 @@ public class Contour
     }
 
     #region Hole
-
+    
+    public List<Contour> Holes = new List<Contour>();
+    
     public int LDi;
     public int LDx => SimplifiedVerts[LDi].x;
     public int LDz => SimplifiedVerts[LDi].z;
@@ -27,6 +29,13 @@ public class Contour
     }
 
     public List<HoleToContour> HoleToContours = new List<HoleToContour>();
+
+    public void ClearHoleData()
+    {
+        Holes.Clear();
+        LDi = 0;
+        HoleToContours.Clear();
+    }
 
     #endregion
 }

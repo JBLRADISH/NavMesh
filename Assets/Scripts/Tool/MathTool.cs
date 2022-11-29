@@ -91,17 +91,59 @@ public static class MathTool
         return (area + 1) / 2;
     }
 
+    public static int Cross(Vector2Int a, Vector2Int b, Vector2Int c)
+    {
+        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+    }
+
     //判断C是否在AB右边
     //AB叉乘AC 如果AC在AB逆时针方向值为正 顺时针方向值为负
     public static bool Right(Vector2Int a, Vector2Int b, Vector2Int c)
     {
-        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y) < 0;
+        return Cross(a, b, c) < 0;
     }
 
     //判断C是否在AB右边或者是AB上
     public static bool RightOrOn(Vector2Int a, Vector2Int b, Vector2Int c)
     {
-        return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y) <= 0;
+        return Cross(a, b, c) <= 0;
+    }
+
+    //ABC3点共线
+    public static bool Collinear(Vector2Int a, Vector2Int b, Vector2Int c)
+    {
+        return Cross(a, b, c) == 0;
+    }
+
+    //C点是否在线段AB上
+    public static bool Between(Vector2Int a, Vector2Int b, Vector2Int c)
+    {
+        if (!Collinear(a, b, c))
+        {
+            return false;
+        }
+
+        if (a.x != b.x)
+        {
+            return a.x <= c.x && c.x <= b.x || a.x >= c.x && c.x >= b.x;
+        }
+        else
+        {
+            return a.y <= c.y && c.y <= b.y || a.y >= c.y && c.y >= b.y;
+        }
+    }
+
+    //判断AB与CD是否相交
+    //CD某一点在AB上或者AB某一点在CD上则相交
+    //CD在AB左右两侧并且AB在CD左右两侧则相交
+    public static bool Intersect(Vector2Int a, Vector2Int b, Vector2Int c, Vector2Int d)
+    {
+        if (Between(a, b, c) || Between(a, b, d) || Between(c, d, a) || Between(c, d, b))
+        {
+            return true;
+        }
+
+        return Right(a, b, c) ^ Right(a, b, d) && Right(c, d, a) ^ Right(c, d, b);
     }
 
     //判断点P是否在ABC组成的圆锥里
@@ -117,7 +159,7 @@ public static class MathTool
         return !RightOrOn(a, p, c) && !RightOrOn(p, a, b);
     }
 
-    public static bool IntersectCountourSegment(Vector2Int a, Vector2Int b, int index, List<Vector4Int> simplifiedVerts)
+    public static bool IntersectCountour(Vector2Int a, Vector2Int b, int index, List<Vector4Int> simplifiedVerts)
     {
         int count = simplifiedVerts.Count;
         for (int i = 0; i < count; i++)
@@ -131,9 +173,9 @@ public static class MathTool
             Vector2Int c = simplifiedVerts[i];
             Vector2Int d = simplifiedVerts[next];
 
-            if (a == c || a == d || b == c || b == d)
+            if (Intersect(a, b, c, d))
             {
-                continue;
+                return true;
             }
         }
 

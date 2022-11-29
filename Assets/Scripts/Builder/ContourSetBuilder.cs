@@ -84,6 +84,8 @@ public class ContourSetBuilder
             }
         }
 
+        MergeHoles(contourSet);
+
         return contourSet;
     }
 
@@ -405,12 +407,15 @@ public class ContourSetBuilder
                 }
             });
 
-            foreach (var hole in contour.Holes)
+            for (int i = 0; i < contour.Holes.Count; i++)
             {
-                int cur = hole.LDi;
-                for (int i = 0; i < hole.SimplifiedVerts.Count; i++)
+                var hole = contour.Holes[i];
+                int holeIndex = hole.LDi;
+                int contourIndex = -1;
+                for (int iter = 0; iter < hole.SimplifiedVerts.Count; iter++)
                 {
-                    Vector2Int p = hole.SimplifiedVerts[cur];
+                    hole.HoleToContours.Clear();
+                    Vector2Int p = hole.SimplifiedVerts[holeIndex];
                     for (int j = 0; j < contour.SimplifiedVerts.Count; j++)
                     {
                         int pre = j == 0 ? contour.SimplifiedVerts.Count - 1 : j - 1;
@@ -425,8 +430,51 @@ public class ContourSetBuilder
                     }
 
                     hole.HoleToContours.Sort((x, y) => x.Dist - y.Dist);
+
+                    contourIndex = -1;
+
+                    foreach (var holeToContour in hole.HoleToContours)
+                    {
+                        bool intersect = MathTool.IntersectCountour(p, contour.SimplifiedVerts[holeToContour.ContourIndex], holeToContour.ContourIndex, contour.SimplifiedVerts);
+                        //轮廓已经与之前的空洞相连 只需检测剩下的空洞
+                        for (int j = i; j < contour.Holes.Count && !intersect; j++)
+                        {
+                            intersect |= MathTool.IntersectCountour(p, contour.SimplifiedVerts[holeToContour.ContourIndex], holeIndex, contour.Holes[j].SimplifiedVerts);
+                        }
+
+                        if (!intersect)
+                        {
+                            contourIndex = holeToContour.ContourIndex;
+                            break;
+                        }
+                    }
+
+                    if (contourIndex != -1)
+                    {
+                        break;
+                    }
+
+                    holeIndex = (holeIndex + 1) % hole.SimplifiedVerts.Count;
+                }
+
+                if (contourIndex != -1)
+                {
+                    simplifiedVerts.Clear();
+                    simplifiedVerts.AddRange(contour.SimplifiedVerts);
+                    contour.SimplifiedVerts.Clear();
+                    for (int j = 0; j <= simplifiedVerts.Count; j++)
+                    {
+                        contour.SimplifiedVerts.Add(simplifiedVerts[(j + contourIndex) % simplifiedVerts.Count]);
+                    }
+
+                    for (int j = 0; j <= hole.SimplifiedVerts.Count; j++)
+                    {
+                        contour.SimplifiedVerts.Add(hole.SimplifiedVerts[(j + holeIndex) % hole.SimplifiedVerts.Count]);
+                    }
                 }
             }
+
+            contour.ClearHoleData();
         }
     }
 
