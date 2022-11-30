@@ -156,7 +156,7 @@ public static class MathTool
         }
 
         //否则点A是凹顶点
-        return !RightOrOn(a, p, c) && !RightOrOn(p, a, b);
+        return !(RightOrOn(a, p, c) && RightOrOn(p, a, b));
     }
 
     public static bool IntersectCountour(Vector2Int a, Vector2Int b, int index, List<Vector4Int> simplifiedVerts)

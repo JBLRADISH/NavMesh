@@ -474,7 +474,7 @@ public class ContourSetBuilder
                 }
             }
 
-            contour.ClearHoleData();
+            contour.Holes.Clear();
         }
     }
 
