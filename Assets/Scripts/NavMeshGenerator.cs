@@ -6,6 +6,7 @@ public class NavMeshGenerator : MonoBehaviour
     private SolidHeightfield solidHeightfield;
     private OpenHeightField openHeightfield;
     private ContourSet contourSet;
+    private PolyMeshField polyMeshField;
 
     private int drawIndex = 0;
     public bool simplified = true;
@@ -30,6 +31,13 @@ public class NavMeshGenerator : MonoBehaviour
         contourSet = builder.Build(openHeightfield);
         drawIndex = 3;
     }
+    
+    public void BuildPolyMeshField()
+    {
+        PolyMeshFieldBuilder builder = new PolyMeshFieldBuilder();
+        polyMeshField = builder.Build(contourSet);
+        drawIndex = 4;
+    }
 
     private void OnDrawGizmos()
     {
@@ -44,6 +52,10 @@ public class NavMeshGenerator : MonoBehaviour
         else if (contourSet != null && drawIndex == 3)
         {
             ContourSetGUI.Draw(contourSet, openHeightfield.DrawColors, simplified);
+        }
+        else if (polyMeshField != null && drawIndex == 4)
+        {
+            PolyMeshFieldGUI.Draw(polyMeshField, openHeightfield.DrawColors);
         }
     }
 }

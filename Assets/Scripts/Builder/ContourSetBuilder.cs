@@ -328,7 +328,7 @@ public class ContourSetBuilder
             if (originVerts[curIndex].w == 0)
             {
                 int distSq = (e - s).sqrMagnitude;
-                if (distSq > 12.0f * 12.0f)
+                if (distSq > 72.0f * 72.0f)
                 {
                     int indexDist = ei < si ? ei + (originCount - si) : ei - si;
                     insertIndex = (si + indexDist / 2) % originCount;

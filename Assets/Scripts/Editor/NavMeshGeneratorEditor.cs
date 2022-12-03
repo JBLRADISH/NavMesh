@@ -24,5 +24,10 @@ public class NavMeshGeneratorEditor : Editor
         }
 
         generator.simplified = EditorGUILayout.Toggle("显示简易轮廓", generator.simplified);
+        
+        if (GUILayout.Button("4.Build PolyMeshField"))
+        {
+            generator.BuildPolyMeshField();
+        }
     }
 }

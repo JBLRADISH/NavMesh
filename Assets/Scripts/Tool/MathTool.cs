@@ -77,14 +77,14 @@ public static class MathTool
 
     //计算轮廓有向面积(顶点顺时针面积为负，逆时针面积为正)
     //有向面积 = 0.5 * ∑(x(i) * z(i + 1) - x(i + 1) * z(i)) 
-    public static int GetContourSignedArea(List<Vector4Int> simplifiedVerts)
+    public static int GetContourSignedArea(List<Vector4Int> verts)
     {
         int area = 0;
-        int count = simplifiedVerts.Count;
+        int count = verts.Count;
         for (int i = 0; i < count; i++)
         {
-            Vector2Int c = simplifiedVerts[i];
-            Vector2Int n = simplifiedVerts[(i + 1) % count];
+            Vector2Int c = verts[i];
+            Vector2Int n = verts[(i + 1) % count];
             area += c.x * n.y - n.x * c.y;
         }
 
@@ -158,22 +158,72 @@ public static class MathTool
         //否则点A是凹顶点
         return !(RightOrOn(a, p, c) && RightOrOn(p, a, b));
     }
+    
+    private const int DEFLAG = 0x3FFFFFFF;
 
-    public static bool IntersectCountour(Vector2Int a, Vector2Int b, int index, List<Vector4Int> simplifiedVerts)
+    public static bool InCone(int ai, int bi, int ci, int pi, List<Vector4Int> verts, List<int> indices)
     {
-        int count = simplifiedVerts.Count;
+        ai = indices[ai] & DEFLAG;
+        bi = indices[bi] & DEFLAG;
+        ci = indices[ci] & DEFLAG;
+        pi = indices[pi] & DEFLAG;
+        Vector2Int a = verts[ai];
+        Vector2Int b = verts[bi];
+        Vector2Int c = verts[ci];
+        Vector2Int p = verts[pi];
+        
+        //如果点A是凸顶点
+        if (RightOrOn(b, a, c))
+        {
+            return Right(a, p, b) && Right(p, a, c);
+        }
+
+        //否则点A是凹顶点
+        return !(RightOrOn(a, p, c) && RightOrOn(p, a, b));
+    }
+
+    public static bool IntersectCountour(Vector2Int a, Vector2Int b, int index, List<Vector4Int> verts)
+    {
+        int count = verts.Count;
         for (int i = 0; i < count; i++)
         {
-            int next = index == count - 1 ? 0 : index + 1;
+            int next = i == count - 1 ? 0 : i + 1;
             if (i == index || next == index)
             {
                 continue;
             }
 
-            Vector2Int c = simplifiedVerts[i];
-            Vector2Int d = simplifiedVerts[next];
+            Vector2Int c = verts[i];
+            Vector2Int d = verts[next];
 
             if (Intersect(a, b, c, d))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IntersectCountour(int ai, int pi, List<Vector4Int> verts, List<int> indices)
+    {
+        ai = indices[ai] & DEFLAG;
+        pi = indices[pi] & DEFLAG;
+        Vector2Int a = verts[ai];
+        Vector2Int p = verts[pi];
+        int count = verts.Count;
+        for (int i = 0; i < count; i++)
+        {
+            int next = i == count - 1 ? 0 : i + 1;
+            if (i == ai || i == pi || next == ai || next == pi)
+            {
+                continue;
+            }
+
+            Vector2Int c = verts[i];
+            Vector2Int d = verts[next];
+
+            if (Intersect(a, p, c, d))
             {
                 return true;
             }
