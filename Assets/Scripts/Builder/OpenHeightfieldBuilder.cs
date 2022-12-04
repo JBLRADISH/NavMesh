@@ -6,21 +6,9 @@ using UnityEngine.AI;
 
 public class OpenHeightfieldBuilder
 {
-    private int agentHeight;
-    private int agentClimb;
-    private int agentRadius;
-
-    public OpenHeightfieldBuilder(int agentTypeID)
-    {
-        var settings = NavMesh.GetSettingsByID(agentTypeID);
-        agentHeight = MathTool.CeilToInt(settings.agentHeight / settings.voxelSize);
-        agentClimb = MathTool.FloorToInt(settings.agentClimb / settings.voxelSize);
-        agentRadius = MathTool.CeilToInt(settings.agentRadius / settings.voxelSize);
-    }
-
     public OpenHeightField Build(SolidHeightfield solidHeightfield)
     {
-        OpenHeightField openHeightField = new OpenHeightField(solidHeightfield);
+        OpenHeightField openHeightField = new OpenHeightField();
 
         foreach (var item in solidHeightfield.Spans)
         {
@@ -52,7 +40,7 @@ public class OpenHeightfieldBuilder
                     {
                         int maxFloor = Mathf.Max(span.Floor, neighborSpan.Floor);
                         int minCeiling = Mathf.Min(span.Ceiling, neighborSpan.Ceiling);
-                        if (minCeiling - maxFloor >= agentHeight && Mathf.Abs(neighborSpan.Floor - span.Floor) <= agentClimb)
+                        if (minCeiling - maxFloor >= Global.AgentHeight && Mathf.Abs(neighborSpan.Floor - span.Floor) <= Global.AgentClimb)
                         {
                             span.Neighbors[dir] = neighborSpan;
                             break;
@@ -89,9 +77,9 @@ public class OpenHeightfieldBuilder
             }
         }
 
-        for (int depthIndex = 0; depthIndex < openHeightField.Depth; depthIndex++)
+        for (int depthIndex = 0; depthIndex < Global.Depth; depthIndex++)
         {
-            for (int widthIndex = 0; widthIndex < openHeightField.Width; widthIndex++)
+            for (int widthIndex = 0; widthIndex < Global.Width; widthIndex++)
             {
                 int index = openHeightField.GetIndex(widthIndex, depthIndex);
                 var span = openHeightField.GetSpan(index);
@@ -123,9 +111,9 @@ public class OpenHeightfieldBuilder
             }
         }
 
-        for (int depthIndex = openHeightField.Depth - 1; depthIndex >= 0; depthIndex--)
+        for (int depthIndex = Global.Depth - 1; depthIndex >= 0; depthIndex--)
         {
-            for (int widthIndex = openHeightField.Width - 1; widthIndex >= 0; widthIndex--)
+            for (int widthIndex = Global.Width - 1; widthIndex >= 0; widthIndex--)
             {
                 int index = openHeightField.GetIndex(widthIndex, depthIndex);
                 var span = openHeightField.GetSpan(index);
@@ -152,7 +140,7 @@ public class OpenHeightfieldBuilder
                         }
                     }
 
-                    if (span.DistToBorder < 2 * agentRadius)
+                    if (span.DistToBorder < 2 * Global.AgentRadius)
                     {
                         span.Flag = 0;
                     }
@@ -445,7 +433,7 @@ public class OpenHeightfieldBuilder
 
             if (region.Neighbors.Count == 1 && region.Neighbors[0] == 0)
             {
-                if (region.SpanCount < 64)
+                if (region.SpanCount < Global.MinRegionVoxelCount)
                 {
                     region.Reset(0);
                 }
@@ -534,7 +522,7 @@ public class OpenHeightfieldBuilder
                     continue;
                 }
 
-                if (region.SpanCount > 400)
+                if (region.SpanCount > Global.MergeRegionVoxelCount)
                 {
                     continue;
                 }

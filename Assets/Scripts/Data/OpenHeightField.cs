@@ -4,20 +4,8 @@ using UnityEngine;
 public class OpenHeightField
 {
     public int SpanCount { get; private set; }
-    public float VoxelSize { get; private set; }
-    public AABB Bounds { get; private set; }
-    public int Width { get; private set; }
-    public int Depth { get; private set; }
     public int MaxDistToBorder;
     public int RegionCount;
-
-    public OpenHeightField(SolidHeightfield solidHeightfield)
-    {
-        VoxelSize = solidHeightfield.VoxelSize;
-        Bounds = solidHeightfield.Bounds;
-        Width = solidHeightfield.Width;
-        Depth = solidHeightfield.Depth;
-    }
 
     public Dictionary<int, OpenHeightSpan> Spans = new Dictionary<int, OpenHeightSpan>();
 
@@ -61,8 +49,8 @@ public class OpenHeightField
 
     private int GetNeighborIndex(int index, int dir)
     {
-        int widthIndex = index / Depth;
-        int depthIndex = index % Depth;
+        int widthIndex = index / Global.Depth;
+        int depthIndex = index % Global.Depth;
         switch (dir)
         {
             case 0:
@@ -96,16 +84,16 @@ public class OpenHeightField
 
     public int GetIndex(int widthIndex, int depthIndex)
     {
-        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Width || depthIndex >= Depth)
+        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Global.Width || depthIndex >= Global.Depth)
         {
             return -1;
         }
 
-        return widthIndex * Depth + depthIndex;
+        return widthIndex * Global.Depth + depthIndex;
     }
 
 #if UNITY_EDITOR
-    
+
     public List<Color> DrawColors = new List<Color>();
 
     public void UpdateDrawColors()

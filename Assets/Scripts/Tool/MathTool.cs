@@ -84,7 +84,7 @@ public static class MathTool
         for (int i = 0; i < count; i++)
         {
             Vector2Int c = verts[i];
-            Vector2Int n = verts[(i + 1) % count];
+            Vector2Int n = verts[Util.Neighbor(i, count, false)];
             area += c.x * n.y - n.x * c.y;
         }
 
@@ -187,7 +187,7 @@ public static class MathTool
         int count = verts.Count;
         for (int i = 0; i < count; i++)
         {
-            int next = i == count - 1 ? 0 : i + 1;
+            int next = Util.Neighbor(i, count, false);
             if (i == index || next == index)
             {
                 continue;
@@ -214,7 +214,7 @@ public static class MathTool
         int count = verts.Count;
         for (int i = 0; i < count; i++)
         {
-            int next = i == count - 1 ? 0 : i + 1;
+            int next = Util.Neighbor(i, count, false);
             if (i == ai || i == pi || next == ai || next == pi)
             {
                 continue;

@@ -4,34 +4,11 @@ using UnityEngine;
 
 public class SolidHeightfield
 {
-    public float VoxelSize { get; private set; }
-    public AABB Bounds { get; private set; }
-    public int Width { get; private set; }
-    public int Depth { get; private set; }
-    public float BoundsHeight => Bounds.Height;
-
     public Dictionary<int, HeightSpan> Spans = new Dictionary<int, HeightSpan>();
-
-    public SolidHeightfield(float voxelSize)
-    {
-        this.VoxelSize = voxelSize;
-    }
-
-    public void SetBounds(AABB bounds)
-    {
-        Bounds = bounds;
-        CalcWidthDepth();
-    }
-
-    private void CalcWidthDepth()
-    {
-        Width = MathTool.CeilToInt((Bounds.Max.x - Bounds.Min.x) / VoxelSize);
-        Depth = MathTool.CeilToInt((Bounds.Max.z - Bounds.Min.z) / VoxelSize);
-    }
 
     public bool AddSpan(int widthIndex, int depthIndex, int heightIndexMin, int heightIndexMax, int flag)
     {
-        if (widthIndex < 0 || widthIndex >= Width || depthIndex < 0 || depthIndex >= Depth)
+        if (widthIndex < 0 || widthIndex >= Global.Width || depthIndex < 0 || depthIndex >= Global.Depth)
         {
             return false;
         }
@@ -139,11 +116,11 @@ public class SolidHeightfield
 
     private int GetIndex(int widthIndex, int depthIndex)
     {
-        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Width || depthIndex >= Depth)
+        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Global.Width || depthIndex >= Global.Depth)
         {
             return -1;
         }
 
-        return widthIndex * Depth + depthIndex;
+        return widthIndex * Global.Depth + depthIndex;
     }
 }

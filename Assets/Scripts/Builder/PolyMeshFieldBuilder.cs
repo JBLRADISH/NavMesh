@@ -6,7 +6,7 @@ public class PolyMeshFieldBuilder
 {
     public PolyMeshField Build(ContourSet contourSet)
     {
-        PolyMeshField polyMeshField = new PolyMeshField(contourSet);
+        PolyMeshField polyMeshField = new PolyMeshField();
 
         int totalVertCount = 0;
         int totalPolyCount = 0;
@@ -25,16 +25,16 @@ public class PolyMeshFieldBuilder
 
         List<Vector4Int> globalVerts = new List<Vector4Int>(totalVertCount);
         Dictionary<Vector4Int, int> globalIndices = new Dictionary<Vector4Int, int>();
-        List<int> globalPolys = new List<int>(totalPolyCount * Config.MaxVertCountInPoly);
+        List<int> globalPolys = new List<int>(totalPolyCount * Global.MaxVertCountInPoly);
         List<int> globalRegions = new List<int>(totalPolyCount);
 
         List<int> idxs = new List<int>(maxVertCount);
         List<int> tris = new List<int>(maxVertCount);
         int[] contour2GlobalIndices = new int[maxVertCount];
-        int[] polys = new int[maxTriCount * Config.MaxVertCountInPoly];
+        int[] polys = new int[maxTriCount * Global.MaxVertCountInPoly];
 
         MergeInfo mergeInfo = new MergeInfo();
-        int[] mergePoly = new int[Config.MaxVertCountInPoly];
+        int[] mergePoly = new int[Global.MaxVertCountInPoly];
 
         foreach (var contour in contourSet.Contours)
         {
@@ -72,14 +72,14 @@ public class PolyMeshFieldBuilder
 
             for (int i = 0; i < triCount; i++)
             {
-                polys[i * Config.MaxVertCountInPoly] = contour2GlobalIndices[tris[i * 3]];
-                polys[i * Config.MaxVertCountInPoly + 1] = contour2GlobalIndices[tris[i * 3 + 1]];
-                polys[i * Config.MaxVertCountInPoly + 2] = contour2GlobalIndices[tris[i * 3 + 2]];
+                polys[i * Global.MaxVertCountInPoly] = contour2GlobalIndices[tris[i * 3]];
+                polys[i * Global.MaxVertCountInPoly + 1] = contour2GlobalIndices[tris[i * 3 + 1]];
+                polys[i * Global.MaxVertCountInPoly + 2] = contour2GlobalIndices[tris[i * 3 + 2]];
             }
 
             int polyCount = triCount;
 
-            if (Config.MaxVertCountInPoly > 3)
+            if (Global.MaxVertCountInPoly > 3)
             {
                 while (true)
                 {
@@ -93,13 +93,13 @@ public class PolyMeshFieldBuilder
                     {
                         for (int j = i + 1; j < polyCount; j++)
                         {
-                            GetPolyMergeInfo(i * Config.MaxVertCountInPoly, j * Config.MaxVertCountInPoly, polys, globalVerts, ref mergeInfo);
+                            GetPolyMergeInfo(i * Global.MaxVertCountInPoly, j * Global.MaxVertCountInPoly, polys, globalVerts, ref mergeInfo);
                             if (mergeInfo.lenSq > maxLenSq)
                             {
                                 maxLenSq = mergeInfo.lenSq;
-                                api = i * Config.MaxVertCountInPoly;
+                                api = i * Global.MaxVertCountInPoly;
                                 avi = mergeInfo.avi;
-                                bpi = j * Config.MaxVertCountInPoly;
+                                bpi = j * Global.MaxVertCountInPoly;
                                 bvi = mergeInfo.bvi;
                             }
                         }
@@ -129,17 +129,17 @@ public class PolyMeshFieldBuilder
                         mergePoly[pos++] = polys[bpi + (bvi + 1 + i) % bpc];
                     }
 
-                    Array.Copy(mergePoly, 0, polys, api, Config.MaxVertCountInPoly);
-                    Array.Copy(polys, bpi + Config.MaxVertCountInPoly, polys, bpi, polys.Length - bpi - Config.MaxVertCountInPoly);
+                    Array.Copy(mergePoly, 0, polys, api, Global.MaxVertCountInPoly);
+                    Array.Copy(polys, bpi + Global.MaxVertCountInPoly, polys, bpi, polys.Length - bpi - Global.MaxVertCountInPoly);
                     polyCount--;
                 }
             }
 
             for (int i = 0; i < polyCount; i++)
             {
-                for (int j = 0; j < Config.MaxVertCountInPoly; j++)
+                for (int j = 0; j < Global.MaxVertCountInPoly; j++)
                 {
-                    globalPolys.Add(polys[i * Config.MaxVertCountInPoly + j]);
+                    globalPolys.Add(polys[i * Global.MaxVertCountInPoly + j]);
                 }
 
                 globalRegions.Add(contour.Region);
@@ -152,11 +152,11 @@ public class PolyMeshFieldBuilder
         polyMeshField.Polys = new int[globalPolys.Count * 2];
         for (int i = 0; i < globalPolyCount; i++)
         {
-            int ppi = i * Config.MaxVertCountInPoly;
-            for (int pvi = 0; pvi < Config.MaxVertCountInPoly; pvi++)
+            int ppi = i * Global.MaxVertCountInPoly;
+            for (int pvi = 0; pvi < Global.MaxVertCountInPoly; pvi++)
             {
                 polyMeshField.Polys[ppi * 2 + pvi] = globalPolys[ppi + pvi];
-                polyMeshField.Polys[ppi * 2 + Config.MaxVertCountInPoly + pvi] = -1;
+                polyMeshField.Polys[ppi * 2 + Global.MaxVertCountInPoly + pvi] = -1;
             }
         }
 
@@ -174,9 +174,9 @@ public class PolyMeshFieldBuilder
     {
         for (int i = 0; i < idxs.Count; i++)
         {
-            int bi = Neighbor(i, idxs.Count, true);
-            int ci = Neighbor(i, idxs.Count, false);
-            int pi = Neighbor(ci, idxs.Count, false);
+            int bi = Util.Neighbor(i, idxs.Count, true);
+            int ci = Util.Neighbor(i, idxs.Count, false);
+            int pi = Util.Neighbor(ci, idxs.Count, false);
             if (MathTool.InCone(i, bi, ci, pi, verts, idxs) && !MathTool.IntersectCountour(i, pi, verts, idxs))
             {
                 idxs[ci] |= FLAG;
@@ -194,11 +194,11 @@ public class PolyMeshFieldBuilder
 
             for (i = 0; i < idxs.Count; i++)
             {
-                next = Neighbor(i, idxs.Count, false);
+                next = Util.Neighbor(i, idxs.Count, false);
                 if ((idxs[next] & FLAG) == FLAG)
                 {
                     ai = idxs[i] & DEFLAG;
-                    pi = idxs[Neighbor(next, idxs.Count, false)] & DEFLAG;
+                    pi = idxs[Util.Neighbor(next, idxs.Count, false)] & DEFLAG;
 
                     int lenSq = ((Vector2Int) verts[pi] - verts[ai]).sqrMagnitude;
 
@@ -216,11 +216,11 @@ public class PolyMeshFieldBuilder
             }
 
             i = minIndex;
-            next = Neighbor(i, idxs.Count, false);
+            next = Util.Neighbor(i, idxs.Count, false);
 
             tris.Add(idxs[i] & DEFLAG);
             tris.Add(idxs[next] & DEFLAG);
-            tris.Add(idxs[Neighbor(next, idxs.Count, false)] & DEFLAG);
+            tris.Add(idxs[Util.Neighbor(next, idxs.Count, false)] & DEFLAG);
 
             idxs.RemoveAt(next);
 
@@ -230,9 +230,9 @@ public class PolyMeshFieldBuilder
                 next = 0;
             }
 
-            ai = Neighbor(i, idxs.Count, true);
-            int bi = Neighbor(ai, idxs.Count, true);
-            pi = Neighbor(next, idxs.Count, false);
+            ai = Util.Neighbor(i, idxs.Count, true);
+            int bi = Util.Neighbor(ai, idxs.Count, true);
+            pi = Util.Neighbor(next, idxs.Count, false);
 
             if (MathTool.InCone(ai, bi, i, next, verts, idxs) && !MathTool.IntersectCountour(ai, next, verts, idxs))
             {
@@ -260,18 +260,6 @@ public class PolyMeshFieldBuilder
         return tris.Count / 3;
     }
 
-    private int Neighbor(int i, int n, bool pre)
-    {
-        if (pre)
-        {
-            return i == 0 ? n - 1 : i - 1;
-        }
-        else
-        {
-            return i == n - 1 ? 0 : i + 1;
-        }
-    }
-
     private struct MergeInfo
     {
         public int avi;
@@ -288,7 +276,7 @@ public class PolyMeshFieldBuilder
         int apc = GetPolyVertCount(api, polys);
         int bpc = GetPolyVertCount(bpi, polys);
 
-        if (apc + bpc - 2 > Config.MaxVertCountInPoly)
+        if (apc + bpc - 2 > Global.MaxVertCountInPoly)
         {
             return;
         }
@@ -296,12 +284,12 @@ public class PolyMeshFieldBuilder
         for (int avi = 0; avi < apc; avi++)
         {
             int avc = polys[api + avi];
-            int avn = polys[api + Neighbor(avi, apc, false)];
+            int avn = polys[api + Util.Neighbor(avi, apc, false)];
 
             for (int bvi = 0; bvi < bpc; bvi++)
             {
                 int bvc = polys[bpi + bvi];
-                int bvn = polys[bpi + Neighbor(bvi, bpc, false)];
+                int bvn = polys[bpi + Util.Neighbor(bvi, bpc, false)];
                 if (avc == bvn && avn == bvc)
                 {
                     mergeInfo.avi = avi;
@@ -316,7 +304,7 @@ public class PolyMeshFieldBuilder
             return;
         }
 
-        int sharePreIndex = polys[api + Neighbor(mergeInfo.avi, apc, true)];
+        int sharePreIndex = polys[api + Util.Neighbor(mergeInfo.avi, apc, true)];
         int shareIndex = polys[api + mergeInfo.avi];
         int shareNextIndex = polys[bpi + (mergeInfo.bvi + 2) % bpc];
         if (MathTool.RightOrOn(verts[sharePreIndex], verts[shareNextIndex], verts[shareIndex]))
@@ -324,7 +312,7 @@ public class PolyMeshFieldBuilder
             return;
         }
 
-        sharePreIndex = polys[bpi + Neighbor(mergeInfo.bvi, bpc, true)];
+        sharePreIndex = polys[bpi + Util.Neighbor(mergeInfo.bvi, bpc, true)];
         shareIndex = polys[bpi + mergeInfo.bvi];
         shareNextIndex = polys[api + (mergeInfo.avi + 2) % apc];
         if (MathTool.RightOrOn(verts[sharePreIndex], verts[shareNextIndex], verts[shareIndex]))
@@ -340,7 +328,7 @@ public class PolyMeshFieldBuilder
 
     private int GetPolyVertCount(int ppi, int[] polys)
     {
-        for (int i = 0; i < Config.MaxVertCountInPoly; i++)
+        for (int i = 0; i < Global.MaxVertCountInPoly; i++)
         {
             if (polys[ppi + i] == -1)
             {
@@ -348,14 +336,14 @@ public class PolyMeshFieldBuilder
             }
         }
 
-        return Config.MaxVertCountInPoly;
+        return Global.MaxVertCountInPoly;
     }
 
     private void BuildAdjacencyData(PolyMeshField polyMeshField)
     {
         int vertCount = polyMeshField.Verts.Length;
         int polyCount = polyMeshField.Regions.Length;
-        int maxEdgeCount = polyCount * Config.MaxVertCountInPoly;
+        int maxEdgeCount = polyCount * Global.MaxVertCountInPoly;
 
         int[] edges = new int[maxEdgeCount * 6];
         int edgeCount = 0;
@@ -370,8 +358,8 @@ public class PolyMeshFieldBuilder
 
         for (int i = 0; i < polyCount; i++)
         {
-            int ppi = i * Config.MaxVertCountInPoly * 2;
-            for (int pvi = 0; pvi < Config.MaxVertCountInPoly; pvi++)
+            int ppi = i * Global.MaxVertCountInPoly * 2;
+            for (int pvi = 0; pvi < Global.MaxVertCountInPoly; pvi++)
             {
                 int pvc = polyMeshField.Polys[ppi + pvi];
                 if (pvc == -1)
@@ -380,7 +368,7 @@ public class PolyMeshFieldBuilder
                 }
 
                 int pvn;
-                if (pvi + 1 >= Config.MaxVertCountInPoly || polyMeshField.Polys[ppi + pvi + 1] == -1)
+                if (pvi + 1 >= Global.MaxVertCountInPoly || polyMeshField.Polys[ppi + pvi + 1] == -1)
                 {
                     pvn = polyMeshField.Polys[ppi];
                 }
@@ -407,8 +395,8 @@ public class PolyMeshFieldBuilder
 
         for (int i = 0; i < polyCount; i++)
         {
-            int ppi = i * Config.MaxVertCountInPoly * 2;
-            for (int pvi = 0; pvi < Config.MaxVertCountInPoly; pvi++)
+            int ppi = i * Global.MaxVertCountInPoly * 2;
+            for (int pvi = 0; pvi < Global.MaxVertCountInPoly; pvi++)
             {
                 int pvc = polyMeshField.Polys[ppi + pvi];
                 if (pvc == -1)
@@ -417,7 +405,7 @@ public class PolyMeshFieldBuilder
                 }
 
                 int pvn;
-                if (pvi + 1 >= Config.MaxVertCountInPoly || polyMeshField.Polys[ppi + pvi + 1] == -1)
+                if (pvi + 1 >= Global.MaxVertCountInPoly || polyMeshField.Polys[ppi + pvi + 1] == -1)
                 {
                     pvn = polyMeshField.Polys[ppi];
                 }
@@ -445,12 +433,12 @@ public class PolyMeshFieldBuilder
         {
             if (edges[i + 4] != -1)
             {
-                int api = edges[i + 2] * Config.MaxVertCountInPoly * 2;
+                int api = edges[i + 2] * Global.MaxVertCountInPoly * 2;
                 int avi = edges[i + 3];
-                int bpi = edges[i + 4] * Config.MaxVertCountInPoly * 2;
+                int bpi = edges[i + 4] * Global.MaxVertCountInPoly * 2;
                 int bvi = edges[i + 5];
-                polyMeshField.Polys[api + Config.MaxVertCountInPoly + avi] = edges[i + 4];
-                polyMeshField.Polys[bpi + Config.MaxVertCountInPoly + bvi] = edges[i + 2];
+                polyMeshField.Polys[api + Global.MaxVertCountInPoly + avi] = edges[i + 4];
+                polyMeshField.Polys[bpi + Global.MaxVertCountInPoly + bvi] = edges[i + 2];
             }
         }
     }

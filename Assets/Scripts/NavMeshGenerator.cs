@@ -11,16 +11,23 @@ public class NavMeshGenerator : MonoBehaviour
     private int drawIndex = 0;
     public bool simplified = true;
 
+    private void InitGlobal()
+    {
+        Global.Init(0);
+    }
+
     public void BuildSolidHeightfield()
     {
-        SolidHeightfieldBuilder builder = new SolidHeightfieldBuilder(0);
+        InitGlobal();
+        
+        SolidHeightfieldBuilder builder = new SolidHeightfieldBuilder();
         solidHeightfield = builder.Build();
         drawIndex = 1;
     }
 
     public void BuildOpenHeightfield()
     {
-        OpenHeightfieldBuilder builder = new OpenHeightfieldBuilder(0);
+        OpenHeightfieldBuilder builder = new OpenHeightfieldBuilder();
         openHeightfield = builder.Build(solidHeightfield);
         drawIndex = 2;
     }

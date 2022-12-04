@@ -8,7 +8,7 @@ public class ContourSetBuilder
 
     public ContourSet Build(OpenHeightField openHeightField)
     {
-        ContourSet contourSet = new ContourSet(openHeightField);
+        ContourSet contourSet = new ContourSet();
 
         foreach (var item in openHeightField.Spans)
         {
@@ -66,8 +66,8 @@ public class ContourSetBuilder
                     startDir++;
                 }
 
-                int widthIndex = item.Key / openHeightField.Depth;
-                int depthIndex = item.Key % openHeightField.Depth;
+                int widthIndex = item.Key / Global.Depth;
+                int depthIndex = item.Key % Global.Depth;
 
                 GenerateOriginContour(span, widthIndex, depthIndex, startDir, originVerts);
 
@@ -232,7 +232,7 @@ public class ContourSetBuilder
         {
             for (int i = 0; i < originVerts.Count; i++)
             {
-                if (originVerts[i].w != originVerts[(i + 1) % originVerts.Count].w)
+                if (originVerts[i].w != originVerts[Util.Neighbor(i, originVerts.Count, false)].w)
                 {
                     Vector4Int vert = originVerts[i];
                     vert.w = i;
@@ -263,7 +263,7 @@ public class ContourSetBuilder
 
         while (start < simplifiedCount)
         {
-            int end = (start + 1) % simplifiedCount;
+            int end = Util.Neighbor(start, simplifiedCount, false);
 
             Vector2Int s = simplifiedVerts[start];
             int si = simplifiedVerts[start].w;
@@ -287,11 +287,11 @@ public class ContourSetBuilder
                         insertIndex = curIndex;
                     }
 
-                    curIndex = (curIndex + 1) % originCount;
+                    curIndex = Util.Neighbor(curIndex, originCount, false);
                 }
             }
 
-            if (insertIndex != -1 && maxDistSq > 1.3f * 1.3f)
+            if (insertIndex != -1 && maxDistSq > Global.EdgeMaxError * Global.EdgeMaxError)
             {
                 Vector4Int vert = originVerts[insertIndex];
                 vert.w = insertIndex;
@@ -313,7 +313,7 @@ public class ContourSetBuilder
 
         while (start < simplifiedCount)
         {
-            int end = (start + 1) % simplifiedCount;
+            int end = Util.Neighbor(start, simplifiedCount, false);
 
             Vector2Int s = simplifiedVerts[start];
             int si = simplifiedVerts[start].w;
@@ -323,12 +323,12 @@ public class ContourSetBuilder
 
             int insertIndex = -1;
 
-            int curIndex = (start + 1) % originCount;
+            int curIndex = Util.Neighbor(start, originCount, false);
 
             if (originVerts[curIndex].w == 0)
             {
                 int distSq = (e - s).sqrMagnitude;
-                if (distSq > 72.0f * 72.0f)
+                if (distSq > Global.EdgeMaxLen * Global.EdgeMaxLen)
                 {
                     int indexDist = ei < si ? ei + (originCount - si) : ei - si;
                     insertIndex = (si + indexDist / 2) % originCount;
@@ -353,7 +353,7 @@ public class ContourSetBuilder
     {
         for (int i = 0; i < simplifiedVerts.Count;)
         {
-            int next = (i + 1) % simplifiedVerts.Count;
+            int next = Util.Neighbor(i, simplifiedVerts.Count, false);
             if ((Vector2Int) simplifiedVerts[i] == (Vector2Int) simplifiedVerts[next])
             {
                 simplifiedVerts.RemoveAt(i);
@@ -418,8 +418,8 @@ public class ContourSetBuilder
                     Vector2Int p = hole.SimplifiedVerts[holeIndex];
                     for (int j = 0; j < contour.SimplifiedVerts.Count; j++)
                     {
-                        int pre = j == 0 ? contour.SimplifiedVerts.Count - 1 : j - 1;
-                        int next = j == contour.SimplifiedVerts.Count - 1 ? 0 : j + 1;
+                        int pre = Util.Neighbor(j, contour.SimplifiedVerts.Count, true);
+                        int next = Util.Neighbor(j, contour.SimplifiedVerts.Count, false);
                         Vector2Int a = contour.SimplifiedVerts[j];
                         Vector2Int b = contour.SimplifiedVerts[pre];
                         Vector2Int c = contour.SimplifiedVerts[next];
@@ -454,7 +454,7 @@ public class ContourSetBuilder
                         break;
                     }
 
-                    holeIndex = (holeIndex + 1) % hole.SimplifiedVerts.Count;
+                    holeIndex = Util.Neighbor(holeIndex, hole.SimplifiedVerts.Count, false);
                 }
 
                 if (contourIndex != -1)
