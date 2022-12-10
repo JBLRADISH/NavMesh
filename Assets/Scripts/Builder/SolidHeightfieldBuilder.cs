@@ -1,8 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 public class SolidHeightfieldBuilder
 {
@@ -51,7 +48,7 @@ public class SolidHeightfieldBuilder
     private static List<Vector3> tempInVerticesList = new List<Vector3>();
     private static List<Vector3> tempInOutVerticesList = new List<Vector3>();
     private static List<Vector3> tempOutVerticesList = new List<Vector3>();
-    private static AABB tempAABB = new AABB();
+    private static AABB tempAABB = AABB.Default;
 
     private void VoxelizeTriangle(int index, List<Vector3> vertices, List<int> triangles, int flag, SolidHeightfield solidHeightfield)
     {

@@ -29,5 +29,10 @@ public class NavMeshGeneratorEditor : Editor
         {
             generator.BuildPolyMeshField();
         }
+        
+        if (GUILayout.Button("5.Build BVH"))
+        {
+            generator.BuildBVH();
+        }
     }
 }

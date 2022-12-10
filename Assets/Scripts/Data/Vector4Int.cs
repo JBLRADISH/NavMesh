@@ -16,6 +16,8 @@ public struct Vector4Int : IEquatable<Vector4Int>
         this.w = w;
     }
 
+    public Vector3 Vector3 => new Vector3(x, y, z);
+
     public static implicit operator Vector2Int(Vector4Int v) => new Vector2Int(v.x, v.z);
 
     public bool Equals(Vector4Int other) => x == other.x && y == other.y && z == other.z;
