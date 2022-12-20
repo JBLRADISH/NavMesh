@@ -115,8 +115,8 @@ public class PolyMeshFieldBuilder
                         mergePoly[i] = -1;
                     }
 
-                    int apc = GetPolyVertCount(api, polys);
-                    int bpc = GetPolyVertCount(bpi, polys);
+                    int apc = Util.GetPolyVertCount(api, polys);
+                    int bpc = Util.GetPolyVertCount(bpi, polys);
                     int pos = 0;
 
                     for (int i = 0; i < apc - 1; i++)
@@ -273,8 +273,8 @@ public class PolyMeshFieldBuilder
         mergeInfo.bvi = -1;
         mergeInfo.lenSq = -1;
 
-        int apc = GetPolyVertCount(api, polys);
-        int bpc = GetPolyVertCount(bpi, polys);
+        int apc = Util.GetPolyVertCount(api, polys);
+        int bpc = Util.GetPolyVertCount(bpi, polys);
 
         if (apc + bpc - 2 > Global.MaxVertCountInPoly)
         {
@@ -324,19 +324,6 @@ public class PolyMeshFieldBuilder
         shareIndex = polys[bpi + mergeInfo.bvi];
 
         mergeInfo.lenSq = ((Vector2Int) verts[shareIndex] - verts[sharePreIndex]).sqrMagnitude;
-    }
-
-    private int GetPolyVertCount(int ppi, int[] polys)
-    {
-        for (int i = 0; i < Global.MaxVertCountInPoly; i++)
-        {
-            if (polys[ppi + i] == -1)
-            {
-                return i;
-            }
-        }
-
-        return Global.MaxVertCountInPoly;
     }
 
     private void BuildAdjacencyData(PolyMeshField polyMeshField)

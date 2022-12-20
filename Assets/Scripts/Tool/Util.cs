@@ -11,4 +11,17 @@
             return i == n - 1 ? 0 : i + 1;
         }
     }
+
+    public static int GetPolyVertCount(int ppi, int[] polys)
+    {
+        for (int pvi = 0; pvi < Global.MaxVertCountInPoly; pvi++)
+        {
+            if (polys[ppi + pvi] == -1)
+            {
+                return pvi;
+            }
+        }
+
+        return Global.MaxVertCountInPoly;
+    }
 }

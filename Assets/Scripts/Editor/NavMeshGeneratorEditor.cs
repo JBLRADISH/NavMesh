@@ -24,15 +24,30 @@ public class NavMeshGeneratorEditor : Editor
         }
 
         generator.simplified = EditorGUILayout.Toggle("显示简易轮廓", generator.simplified);
-        
+
         if (GUILayout.Button("4.Build PolyMeshField"))
         {
             generator.BuildPolyMeshField();
         }
-        
-        if (GUILayout.Button("5.Build BVH"))
+
+        if (GUILayout.Button("5.Build NavMeshData"))
         {
-            generator.BuildBVH();
+            generator.BuildNavMeshData();
+        }
+
+        generator.bvh = EditorGUILayout.Toggle("显示BVH", generator.bvh);
+
+        EditorGUILayout.Separator();
+
+        GUILayout.Label("寻路");
+        
+        generator.start = (Transform) EditorGUILayout.ObjectField("开始点", generator.start, typeof(Transform));
+        
+        generator.end = (Transform) EditorGUILayout.ObjectField("结束点", generator.end, typeof(Transform));
+
+        if (GUILayout.Button("6.A Star Path Find"))
+        {
+            generator.AStarPathFind();
         }
     }
 }

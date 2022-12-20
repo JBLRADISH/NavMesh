@@ -64,6 +64,19 @@ public struct AABB
 
         return true;
     }
+    
+    public bool Overlap(Vector3 p)
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            if (Min[i] > p[i] || Max[i] < p[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public void Union(AABB other)
     {
