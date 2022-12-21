@@ -17,6 +17,7 @@ public class NavMeshGenerator : MonoBehaviour
     public Transform end;
 
     private List<int> polys = ObjectPool.Get<List<int>>();
+    private List<Vector3> path = ObjectPool.Get<List<Vector3>>();
 
     private void InitGlobal()
     {
@@ -68,6 +69,15 @@ public class NavMeshGenerator : MonoBehaviour
         AStar.FindPath(polys, ref navMeshData, ref sp, ref ep);
         drawIndex = 6;
     }
+    
+    public void StringPullingPathFind()
+    {
+        Vector3 sp = start.position;
+        Vector3 ep = end.position;
+        path.Clear();
+        StringPulling.FindPath(path, ref navMeshData, ref sp, ref ep, polys);
+        drawIndex = 7;
+    }
 
     private void OnDrawGizmos()
     {
@@ -99,6 +109,11 @@ public class NavMeshGenerator : MonoBehaviour
         if (polys.Count > 0 && drawIndex == 6)
         {
             AStarGUI.Draw(ref navMeshData, polys);
+        }
+        
+        if (path.Count > 0 && drawIndex == 7)
+        {
+            StringPullingGUI.Draw(path);
         }
     }
 }

@@ -49,5 +49,10 @@ public class NavMeshGeneratorEditor : Editor
         {
             generator.AStarPathFind();
         }
+        
+        if (GUILayout.Button("7.String Pulling Path Find"))
+        {
+            generator.StringPullingPathFind();
+        }
     }
 }

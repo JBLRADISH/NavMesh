@@ -95,6 +95,11 @@ public static class MathTool
     {
         return (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
     }
+    
+    public static float Cross(ref Vector3 a, ref Vector3 b, ref Vector3 c)
+    {
+        return (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+    }
 
     //判断C是否在AB右边
     //AB叉乘AC 如果AC在AB逆时针方向值为正 顺时针方向值为负
@@ -102,11 +107,21 @@ public static class MathTool
     {
         return Cross(a, b, c) < 0;
     }
+    
+    public static bool Right(ref Vector3 a, ref Vector3 b, ref Vector3 c)
+    {
+        return Cross(ref a, ref b, ref c) < 0;
+    }
 
     //判断C是否在AB右边或者是AB上
     public static bool RightOrOn(Vector2Int a, Vector2Int b, Vector2Int c)
     {
         return Cross(a, b, c) <= 0;
+    }
+    
+    public static bool RightOrOn(ref Vector3 a, ref Vector3 b, ref Vector3 c)
+    {
+        return Cross(ref a, ref b, ref c) <= 0;
     }
 
     //ABC3点共线

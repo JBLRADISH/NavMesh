@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class AStarGUI
+public static class AStarGUI
 {
     public static void Draw(ref NavMeshData navMeshData, List<int> polys)
     {

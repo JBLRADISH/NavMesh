@@ -24,7 +24,6 @@ public struct BVH
             bool leaf = cur.Idx >= 0;
             if (leaf && overlap)
             {
-                BVHGUI.DrawAABB2(cur.Bounds, Color.magenta);
                 polys.Add(cur.Idx);
             }
 
