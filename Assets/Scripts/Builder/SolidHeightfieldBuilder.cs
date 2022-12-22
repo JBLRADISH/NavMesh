@@ -7,7 +7,7 @@ public class SolidHeightfieldBuilder
 
     public SolidHeightfieldBuilder()
     {
-        minNormalY = Mathf.Cos(Global.AgentSlope / 180 * Mathf.PI);
+        minNormalY = Mathf.Cos(BuilderData.AgentSlope / 180 * Mathf.PI);
     }
 
     public SolidHeightfield Build()
@@ -15,7 +15,7 @@ public class SolidHeightfieldBuilder
         SolidHeightfield solidHeightfield = new SolidHeightfield();
         SolidHeightfieldHelper.Collect(out List<Vector3> vertices, out List<int> triangles);
         AABB bounds = new AABB(vertices);
-        Global.SetBounds(bounds);
+        BuilderData.SetBounds(bounds);
         int[] triangleFlags = MarkInputMeshWalkableFlags(vertices, triangles);
         for (int i = 0; i < triangleFlags.Length; i++)
         {
@@ -62,20 +62,20 @@ public class SolidHeightfieldBuilder
         tempInVerticesList.Add(p3);
 
         tempAABB.Refresh(tempInVerticesList);
-        if (!Global.Bounds.Overlap(tempAABB))
+        if (!BuilderData.Bounds.Overlap(tempAABB))
         {
             return;
         }
 
-        int triWidthMin = MathTool.FloorToInt((tempAABB.Min.x - Global.Bounds.Min.x) * Global.InverseVoxelSize);
-        int triDepthMin = MathTool.FloorToInt((tempAABB.Min.z - Global.Bounds.Min.z) * Global.InverseVoxelSize);
-        int triWidthMax = MathTool.FloorToInt((tempAABB.Max.x - Global.Bounds.Min.x) * Global.InverseVoxelSize);
-        int triDepthMax = MathTool.FloorToInt((tempAABB.Max.z - Global.Bounds.Min.z) * Global.InverseVoxelSize);
+        int triWidthMin = MathTool.FloorToInt((tempAABB.Min.x - BuilderData.Bounds.Min.x) * BuilderData.InverseVoxelSize);
+        int triDepthMin = MathTool.FloorToInt((tempAABB.Min.z - BuilderData.Bounds.Min.z) * BuilderData.InverseVoxelSize);
+        int triWidthMax = MathTool.FloorToInt((tempAABB.Max.x - BuilderData.Bounds.Min.x) * BuilderData.InverseVoxelSize);
+        int triDepthMax = MathTool.FloorToInt((tempAABB.Max.z - BuilderData.Bounds.Min.z) * BuilderData.InverseVoxelSize);
 
-        triWidthMin = Mathf.Clamp(triWidthMin, 0, Global.Width - 1);
-        triDepthMin = Mathf.Clamp(triDepthMin, 0, Global.Depth - 1);
-        triWidthMax = Mathf.Clamp(triWidthMax, 0, Global.Width - 1);
-        triDepthMax = Mathf.Clamp(triDepthMax, 0, Global.Depth - 1);
+        triWidthMin = Mathf.Clamp(triWidthMin, 0, BuilderData.Width - 1);
+        triDepthMin = Mathf.Clamp(triDepthMin, 0, BuilderData.Depth - 1);
+        triWidthMax = Mathf.Clamp(triWidthMax, 0, BuilderData.Width - 1);
+        triDepthMax = Mathf.Clamp(triDepthMax, 0, BuilderData.Depth - 1);
 
         for (int depthIndex = triDepthMin; depthIndex <= triDepthMax; ++depthIndex)
         {
@@ -84,7 +84,7 @@ public class SolidHeightfieldBuilder
             tempInVerticesList.Add(p2);
             tempInVerticesList.Add(p3);
 
-            float z = Global.Bounds.Min.z + depthIndex * Global.VoxelSize;
+            float z = BuilderData.Bounds.Min.z + depthIndex * BuilderData.VoxelSize;
 
             ClipTriangle(tempInVerticesList, tempInOutVerticesList, 2, 1, -z);
             if (tempInOutVerticesList.Count < 3)
@@ -92,7 +92,7 @@ public class SolidHeightfieldBuilder
                 continue;
             }
 
-            ClipTriangle(tempInOutVerticesList, tempOutVerticesList, 2, -1, z + Global.VoxelSize);
+            ClipTriangle(tempInOutVerticesList, tempOutVerticesList, 2, -1, z + BuilderData.VoxelSize);
             if (tempOutVerticesList.Count < 3)
             {
                 continue;
@@ -100,7 +100,7 @@ public class SolidHeightfieldBuilder
 
             for (int widthIndex = triWidthMin; widthIndex <= triWidthMax; ++widthIndex)
             {
-                float x = Global.Bounds.Min.x + widthIndex * Global.VoxelSize;
+                float x = BuilderData.Bounds.Min.x + widthIndex * BuilderData.VoxelSize;
 
                 ClipTriangle(tempOutVerticesList, tempInOutVerticesList, 0, 1, -x);
                 if (tempInOutVerticesList.Count < 3)
@@ -108,7 +108,7 @@ public class SolidHeightfieldBuilder
                     continue;
                 }
 
-                ClipTriangle(tempInOutVerticesList, tempInVerticesList, 0, -1, x + Global.VoxelSize);
+                ClipTriangle(tempInOutVerticesList, tempInVerticesList, 0, -1, x + BuilderData.VoxelSize);
                 if (tempInVerticesList.Count < 3)
                 {
                     continue;
@@ -116,10 +116,10 @@ public class SolidHeightfieldBuilder
 
                 tempAABB.Refresh(tempInVerticesList);
 
-                float heightMin = tempAABB.Min.y - Global.Bounds.Min.y;
-                float heightMax = tempAABB.Max.y - Global.Bounds.Min.y;
+                float heightMin = tempAABB.Min.y - BuilderData.Bounds.Min.y;
+                float heightMax = tempAABB.Max.y - BuilderData.Bounds.Min.y;
 
-                if (heightMax < 0.0f || heightMin > Global.BoundsHeight)
+                if (heightMax < 0.0f || heightMin > BuilderData.BoundsHeight)
                 {
                     continue;
                 }
@@ -129,13 +129,13 @@ public class SolidHeightfieldBuilder
                     heightMin = 0.0f;
                 }
 
-                if (heightMax > Global.BoundsHeight)
+                if (heightMax > BuilderData.BoundsHeight)
                 {
-                    heightMax = Global.BoundsHeight;
+                    heightMax = BuilderData.BoundsHeight;
                 }
 
-                int heightIndexMin = Mathf.Max(MathTool.FloorToInt(heightMin * Global.InverseVoxelSize), 0);
-                int heightIndexMax = Mathf.Max(MathTool.CeilToInt(heightMax * Global.InverseVoxelSize), 0);
+                int heightIndexMin = Mathf.Max(MathTool.FloorToInt(heightMin * BuilderData.InverseVoxelSize), 0);
+                int heightIndexMax = Mathf.Max(MathTool.CeilToInt(heightMax * BuilderData.InverseVoxelSize), 0);
 
                 solidHeightfield.AddSpan(widthIndex, depthIndex, heightIndexMin, heightIndexMax, flag);
             }
@@ -184,7 +184,7 @@ public class SolidHeightfieldBuilder
 
                 int spanFloor = span.HeightIndexMax;
                 int spanCeiling = span.Next?.HeightIndexMin ?? int.MaxValue;
-                if (spanCeiling - spanFloor < Global.AgentHeight)
+                if (spanCeiling - spanFloor < BuilderData.AgentHeight)
                 {
                     span.Flag = 0;
                 }

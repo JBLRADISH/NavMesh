@@ -66,8 +66,8 @@ public class ContourSetBuilder
                     startDir++;
                 }
 
-                int widthIndex = item.Key / Global.Depth;
-                int depthIndex = item.Key % Global.Depth;
+                int widthIndex = item.Key / BuilderData.Depth;
+                int depthIndex = item.Key % BuilderData.Depth;
 
                 GenerateOriginContour(span, widthIndex, depthIndex, startDir, originVerts);
 
@@ -291,7 +291,7 @@ public class ContourSetBuilder
                 }
             }
 
-            if (insertIndex != -1 && maxDistSq > Global.EdgeMaxError * Global.EdgeMaxError)
+            if (insertIndex != -1 && maxDistSq > BuilderData.EdgeMaxError * BuilderData.EdgeMaxError)
             {
                 Vector4Int vert = originVerts[insertIndex];
                 vert.w = insertIndex;
@@ -328,7 +328,7 @@ public class ContourSetBuilder
             if (originVerts[curIndex].w == 0)
             {
                 int distSq = (e - s).sqrMagnitude;
-                if (distSq > Global.EdgeMaxLen * Global.EdgeMaxLen)
+                if (distSq > BuilderData.EdgeMaxLen * BuilderData.EdgeMaxLen)
                 {
                     int indexDist = ei < si ? ei + (originCount - si) : ei - si;
                     insertIndex = (si + indexDist / 2) % originCount;

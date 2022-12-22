@@ -37,7 +37,7 @@ public class OpenHeightfieldBuilder
                     {
                         int maxFloor = Mathf.Max(span.Floor, neighborSpan.Floor);
                         int minCeiling = Mathf.Min(span.Ceiling, neighborSpan.Ceiling);
-                        if (minCeiling - maxFloor >= Global.AgentHeight && Mathf.Abs(neighborSpan.Floor - span.Floor) <= Global.AgentClimb)
+                        if (minCeiling - maxFloor >= BuilderData.AgentHeight && Mathf.Abs(neighborSpan.Floor - span.Floor) <= BuilderData.AgentClimb)
                         {
                             span.Neighbors[dir] = neighborSpan;
                             break;
@@ -74,9 +74,9 @@ public class OpenHeightfieldBuilder
             }
         }
 
-        for (int depthIndex = 0; depthIndex < Global.Depth; depthIndex++)
+        for (int depthIndex = 0; depthIndex < BuilderData.Depth; depthIndex++)
         {
-            for (int widthIndex = 0; widthIndex < Global.Width; widthIndex++)
+            for (int widthIndex = 0; widthIndex < BuilderData.Width; widthIndex++)
             {
                 int index = openHeightField.GetIndex(widthIndex, depthIndex);
                 var span = openHeightField.GetSpan(index);
@@ -108,9 +108,9 @@ public class OpenHeightfieldBuilder
             }
         }
 
-        for (int depthIndex = Global.Depth - 1; depthIndex >= 0; depthIndex--)
+        for (int depthIndex = BuilderData.Depth - 1; depthIndex >= 0; depthIndex--)
         {
-            for (int widthIndex = Global.Width - 1; widthIndex >= 0; widthIndex--)
+            for (int widthIndex = BuilderData.Width - 1; widthIndex >= 0; widthIndex--)
             {
                 int index = openHeightField.GetIndex(widthIndex, depthIndex);
                 var span = openHeightField.GetSpan(index);
@@ -137,7 +137,7 @@ public class OpenHeightfieldBuilder
                         }
                     }
 
-                    if (span.DistToBorder < 2 * Global.AgentRadius)
+                    if (span.DistToBorder < 2 * BuilderData.AgentRadius)
                     {
                         span.Flag = 0;
                     }
@@ -430,7 +430,7 @@ public class OpenHeightfieldBuilder
 
             if (region.Neighbors.Count == 1 && region.Neighbors[0] == 0)
             {
-                if (region.SpanCount < Global.MinRegionVoxelCount)
+                if (region.SpanCount < BuilderData.MinRegionVoxelCount)
                 {
                     region.Reset(0);
                 }
@@ -519,7 +519,7 @@ public class OpenHeightfieldBuilder
                     continue;
                 }
 
-                if (region.SpanCount > Global.MergeRegionVoxelCount)
+                if (region.SpanCount > BuilderData.MergeRegionVoxelCount)
                 {
                     continue;
                 }

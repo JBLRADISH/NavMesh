@@ -49,8 +49,8 @@ public class OpenHeightField
 
     private int GetNeighborIndex(int index, int dir)
     {
-        int widthIndex = index / Global.Depth;
-        int depthIndex = index % Global.Depth;
+        int widthIndex = index / BuilderData.Depth;
+        int depthIndex = index % BuilderData.Depth;
         switch (dir)
         {
             case 0:
@@ -84,12 +84,12 @@ public class OpenHeightField
 
     public int GetIndex(int widthIndex, int depthIndex)
     {
-        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Global.Width || depthIndex >= Global.Depth)
+        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= BuilderData.Width || depthIndex >= BuilderData.Depth)
         {
             return -1;
         }
 
-        return widthIndex * Global.Depth + depthIndex;
+        return widthIndex * BuilderData.Depth + depthIndex;
     }
 
 #if UNITY_EDITOR

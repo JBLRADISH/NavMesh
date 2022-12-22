@@ -6,7 +6,7 @@ public class SolidHeightfield
 
     public bool AddSpan(int widthIndex, int depthIndex, int heightIndexMin, int heightIndexMax, int flag)
     {
-        if (widthIndex < 0 || widthIndex >= Global.Width || depthIndex < 0 || depthIndex >= Global.Depth)
+        if (widthIndex < 0 || widthIndex >= BuilderData.Width || depthIndex < 0 || depthIndex >= BuilderData.Depth)
         {
             return false;
         }
@@ -114,11 +114,11 @@ public class SolidHeightfield
 
     private int GetIndex(int widthIndex, int depthIndex)
     {
-        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= Global.Width || depthIndex >= Global.Depth)
+        if (widthIndex < 0 || depthIndex < 0 || widthIndex >= BuilderData.Width || depthIndex >= BuilderData.Depth)
         {
             return -1;
         }
 
-        return widthIndex * Global.Depth + depthIndex;
+        return widthIndex * BuilderData.Depth + depthIndex;
     }
 }

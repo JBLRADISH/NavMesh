@@ -11,6 +11,11 @@ public static class SolidHeightfieldHelper
         MeshFilter[] filters = Object.FindObjectsOfType<MeshFilter>();
         foreach (var filter in filters)
         {
+            if (filter.GetComponent<Agent>() != null)
+            {
+                continue;
+            }
+
             var matrix = filter.transform.localToWorldMatrix;
             var tmpVertices = filter.sharedMesh.vertices;
             foreach (var vertex in tmpVertices)

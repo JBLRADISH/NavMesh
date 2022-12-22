@@ -21,9 +21,9 @@ public static class ContourSetGUI
 
     private static Vector3 GetContourPoint(Vector4Int vert)
     {
-        float x = Global.Bounds.Min.x + vert.x * Global.VoxelSize;
-        float y = Global.Bounds.Min.y + vert.y * Global.VoxelSize;
-        float z = Global.Bounds.Min.z + vert.z * Global.VoxelSize;
+        float x = BuilderData.Bounds.Min.x + vert.x * BuilderData.VoxelSize;
+        float y = BuilderData.Bounds.Min.y + vert.y * BuilderData.VoxelSize;
+        float z = BuilderData.Bounds.Min.z + vert.z * BuilderData.VoxelSize;
         return new Vector3(x, y, z);
     }
 }

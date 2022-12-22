@@ -8,8 +8,8 @@ public static class AStarGUI
         Vector3 pre = Vector3.negativeInfinity;
         foreach (var poly in polys)
         {
-            int ppi = poly * Global.MaxVertCountInPoly * 2;
-            int ppc = Util.GetPolyVertCount(ppi, navMeshData.Polys);
+            int ppi = poly * navMeshData.MaxVertCountInPoly * 2;
+            int ppc = Util.GetPolyVertCount(ppi, navMeshData.Polys, navMeshData.MaxVertCountInPoly);
             Vector3 cur = Vector3.zero;
             for (int pvi = 0; pvi < ppc; pvi++)
             {
@@ -17,8 +17,6 @@ public static class AStarGUI
             }
 
             cur /= ppc;
-            Gizmos.color = Color.blue;
-            Gizmos.DrawSphere(cur, 0.1f);
             if (pre != Vector3.negativeInfinity)
             {
                 Gizmos.color = Color.red;

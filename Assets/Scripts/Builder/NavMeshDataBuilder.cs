@@ -5,14 +5,19 @@ public class NavMeshDataBuilder
     public NavMeshData Build(PolyMeshField polyMeshField)
     {
         NavMeshData navMeshData = new NavMeshData();
+        
+        navMeshData.BoundsMin = BuilderData.Bounds.Min;
+        navMeshData.InverseVoxelSize = BuilderData.InverseVoxelSize;
+        navMeshData.MaxVertCountInPoly = BuilderData.MaxVertCountInPoly;
+        
         navMeshData.Verts = new Vector3[polyMeshField.Verts.Length];
         for (int i = 0; i < polyMeshField.Verts.Length; i++)
         {
             Vector4Int voxelVert = polyMeshField.Verts[i];
             Vector3 vert = new Vector3();
-            vert.x = Global.Bounds.Min.x + voxelVert.x * Global.VoxelSize;
-            vert.y = Global.Bounds.Min.y + voxelVert.y * Global.VoxelSize;
-            vert.z = Global.Bounds.Min.z + voxelVert.z * Global.VoxelSize;
+            vert.x = BuilderData.Bounds.Min.x + voxelVert.x * BuilderData.VoxelSize;
+            vert.y = BuilderData.Bounds.Min.y + voxelVert.y * BuilderData.VoxelSize;
+            vert.z = BuilderData.Bounds.Min.z + voxelVert.z * BuilderData.VoxelSize;
             navMeshData.Verts[i] = vert;
         }
 
@@ -22,7 +27,7 @@ public class NavMeshDataBuilder
         LinearBVHNode[] items = new LinearBVHNode[polyMeshField.Regions.Length];
         for (int i = 0; i < items.Length; i++)
         {
-            AABB aabb = new AABB(polyMeshField.Verts, polyMeshField.Polys, i * Global.MaxVertCountInPoly * 2, Global.MaxVertCountInPoly);
+            AABB aabb = new AABB(polyMeshField.Verts, polyMeshField.Polys, i * BuilderData.MaxVertCountInPoly * 2, BuilderData.MaxVertCountInPoly);
             items[i].Bounds = aabb;
             items[i].Idx = i;
         }

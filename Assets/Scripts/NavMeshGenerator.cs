@@ -7,21 +7,16 @@ public class NavMeshGenerator : MonoBehaviour
     private OpenHeightField openHeightfield;
     private ContourSet contourSet;
     private PolyMeshField polyMeshField;
+
     private NavMeshData navMeshData;
 
     private int drawIndex = 0;
     public bool simplified = true;
     public bool bvh = true;
 
-    public Transform start;
-    public Transform end;
-
-    private List<int> polys = ObjectPool.Get<List<int>>();
-    private List<Vector3> path = ObjectPool.Get<List<Vector3>>();
-
     private void InitGlobal()
     {
-        Global.Init(0);
+        BuilderData.Init(0);
     }
 
     public void BuildSolidHeightfield()
@@ -58,25 +53,8 @@ public class NavMeshGenerator : MonoBehaviour
     {
         NavMeshDataBuilder builder = new NavMeshDataBuilder();
         navMeshData = builder.Build(polyMeshField);
+        LoadTool.Serialization(ref navMeshData);
         drawIndex = 5;
-    }
-
-    public void AStarPathFind()
-    {
-        Vector3 sp = start.position;
-        Vector3 ep = end.position;
-        polys.Clear();
-        AStar.FindPath(polys, ref navMeshData, ref sp, ref ep);
-        drawIndex = 6;
-    }
-    
-    public void StringPullingPathFind()
-    {
-        Vector3 sp = start.position;
-        Vector3 ep = end.position;
-        path.Clear();
-        StringPulling.FindPath(path, ref navMeshData, ref sp, ref ep, polys);
-        drawIndex = 7;
     }
 
     private void OnDrawGizmos()
@@ -104,16 +82,6 @@ public class NavMeshGenerator : MonoBehaviour
         if (bvh && drawIndex == 5)
         {
             BVHGUI.Draw(navMeshData.BVH);
-        }
-
-        if (polys.Count > 0 && drawIndex == 6)
-        {
-            AStarGUI.Draw(ref navMeshData, polys);
-        }
-        
-        if (path.Count > 0 && drawIndex == 7)
-        {
-            StringPullingGUI.Draw(path);
         }
     }
 }

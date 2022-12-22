@@ -12,8 +12,9 @@ public static class StringPulling
 			return;
 		}
 
+		path.Add(start);
+
 		Vector3 portalApex = start;
-		path.Add(portalApex);
 		Vector3 portalLeft = portalApex;
 		Vector3 portalRight = portalApex;
 		int apexIndex = 0;
@@ -54,7 +55,7 @@ public static class StringPulling
 					rightIndex = apexIndex;
 
 					i = apexIndex;
-					
+
 					continue;
 				}
 			}
@@ -90,10 +91,10 @@ public static class StringPulling
 	private static void GetNextPortal(ref NavMeshData navMeshData, List<int> polys, int index, ref Vector3 left, ref Vector3 right)
 	{
 		int np = polys[index + 1];
-		int lpi = polys[index] * Global.MaxVertCountInPoly * 2;
-		int lei = lpi + Global.MaxVertCountInPoly;
+		int lpi = polys[index] * navMeshData.MaxVertCountInPoly * 2;
+		int lei = lpi + navMeshData.MaxVertCountInPoly;
 		int lvi;
-		for (lvi = 0; lvi < Global.MaxVertCountInPoly; lvi++)
+		for (lvi = 0; lvi < navMeshData.MaxVertCountInPoly; lvi++)
 		{
 			if (navMeshData.Polys[lei + lvi] == np)
 			{
@@ -101,12 +102,12 @@ public static class StringPulling
 			}
 		}
 
-		if (lvi == Global.MaxVertCountInPoly)
+		if (lvi == navMeshData.MaxVertCountInPoly)
 		{
 			return;
 		}
 
 		left = navMeshData.Verts[navMeshData.Polys[lpi + lvi]];
-		right = navMeshData.Verts[navMeshData.Polys[lpi + Util.Neighbor(lvi, Util.GetPolyVertCount(lpi, navMeshData.Polys), false)]];
+		right = navMeshData.Verts[navMeshData.Polys[lpi + Util.Neighbor(lvi, Util.GetPolyVertCount(lpi, navMeshData.Polys, navMeshData.MaxVertCountInPoly), false)]];
 	}
 }

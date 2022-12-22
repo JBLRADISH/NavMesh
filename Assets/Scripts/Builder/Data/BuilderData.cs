@@ -1,6 +1,6 @@
 ﻿using UnityEngine.AI;
 
-public static class Global
+public static class BuilderData
 {
     public static float VoxelSize { get; private set; }
     public static float InverseVoxelSize { get; private set; }

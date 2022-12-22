@@ -4,7 +4,7 @@ public static class OpenHeightfieldGUI
 {
     public static void Draw(OpenHeightField openHeightfield)
     {
-        Vector3 size = Vector3.one * Global.VoxelSize;
+        Vector3 size = Vector3.one * BuilderData.VoxelSize;
 
         foreach (var item in openHeightfield.Spans)
         {
@@ -17,11 +17,11 @@ public static class OpenHeightfieldGUI
                     continue;
                 }
 
-                int widthIndex = item.Key / Global.Depth;
-                int depthIndex = item.Key % Global.Depth;
-                float x = Global.Bounds.Min.x + (widthIndex + 0.5f) * Global.VoxelSize;
-                float y = Global.Bounds.Min.y + (span.Floor + 0.5f) * Global.VoxelSize;
-                float z = Global.Bounds.Min.z + (depthIndex + 0.5f) * Global.VoxelSize;
+                int widthIndex = item.Key / BuilderData.Depth;
+                int depthIndex = item.Key % BuilderData.Depth;
+                float x = BuilderData.Bounds.Min.x + (widthIndex + 0.5f) * BuilderData.VoxelSize;
+                float y = BuilderData.Bounds.Min.y + (span.Floor + 0.5f) * BuilderData.VoxelSize;
+                float z = BuilderData.Bounds.Min.z + (depthIndex + 0.5f) * BuilderData.VoxelSize;
                 Vector3 center = new Vector3(x, y, z);
 
                 Gizmos.color = openHeightfield.DrawColors[span.Region];

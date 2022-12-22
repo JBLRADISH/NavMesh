@@ -248,10 +248,10 @@ public static class MathTool
     }
     
     //射线法判断点是否在多边形内
-    public static bool InPoly(ref Vector3 p, Vector3[] verts, int[] polys, int ppi)
+    public static bool InPoly(ref Vector3 p, Vector3[] verts, int[] polys, int ppi, int mvc)
     {
         int cvi, pvi;
-        int ppc = Util.GetPolyVertCount(ppi, polys);
+        int ppc = Util.GetPolyVertCount(ppi, polys, mvc);
         bool @in = false;
         for (cvi = 0, pvi = ppc - 1; cvi < ppc; pvi = cvi++)
         {

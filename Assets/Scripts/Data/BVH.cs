@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct LinearBVHNode
 {
     public AABB Bounds;

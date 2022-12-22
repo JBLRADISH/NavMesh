@@ -4,25 +4,25 @@ using UnityEngine;
 public static class AStar
 {
 	private class Node
-    {
-	    public int id;
-	    public int flag;
-	    public int parent = -1;
-        public float cost;
-        public float total = -1.0f;
-        public Vector3 pos;
+	{
+		public int id;
+		public int flag;
+		public int parent = -1;
+		public float cost;
+		public float total = -1.0f;
+		public Vector3 pos;
 
-        public void Reset()
-        {
-	        id = 0;
-	        flag = 0;
-	        parent = -1;
-	        cost = 0;
-	        total = -1.0f;
-	        pos = Vector3.zero;
-        }
-    }
-	
+		public void Reset()
+		{
+			id = 0;
+			flag = 0;
+			parent = -1;
+			cost = 0;
+			total = -1.0f;
+			pos = Vector3.zero;
+		}
+	}
+
 	private const int NODE_OPEN = 1;
 	private const int NODE_CLOSE = 2;
 
@@ -48,19 +48,19 @@ public static class AStar
 	private static PriorityQueue<Node> openList = new PriorityQueue<Node>(2048, new NodeComparer());
 	private static Dictionary<int, Node> nodeCache = new Dictionary<int, Node>();
 
-	public static void FindPath(List<int> path, ref NavMeshData navMeshData, ref Vector3 start, ref Vector3 end)
+	public static PathFindStatus FindPath(List<int> path, ref NavMeshData navMeshData, ref Vector3 start, ref Vector3 end)
 	{
 		int sp = GetPoly(ref navMeshData, ref start);
 		int ep = GetPoly(ref navMeshData, ref end);
 		if (sp == -1 || ep == -1)
 		{
-			return;
+			return PathFindStatus.NOT_IN_POLY;
 		}
 
 		if (sp == ep)
 		{
 			path.Add(sp);
-			return;
+			return PathFindStatus.SUCCESS;
 		}
 
 		openList.Clear();
@@ -89,11 +89,11 @@ public static class AStar
 				break;
 			}
 
-			int ppi = cn.id * Global.MaxVertCountInPoly * 2;
-			int pei = ppi + Global.MaxVertCountInPoly;
-			int ppc = Util.GetPolyVertCount(ppi, navMeshData.Polys);
+			int ppi = cn.id * navMeshData.MaxVertCountInPoly * 2;
+			int pei = ppi + navMeshData.MaxVertCountInPoly;
+			int ppc = Util.GetPolyVertCount(ppi, navMeshData.Polys, navMeshData.MaxVertCountInPoly);
 
-			for (int pvi = 0; pvi < Global.MaxVertCountInPoly; pvi++)
+			for (int pvi = 0; pvi < navMeshData.MaxVertCountInPoly; pvi++)
 			{
 				int np = navMeshData.Polys[pei + pvi];
 				if (np == -1 || np == cn.parent)
@@ -181,30 +181,32 @@ public static class AStar
 		}
 
 		nodeCache.Clear();
+
+		return PathFindStatus.SUCCESS;
 	}
 
 	private static int GetPoly(ref NavMeshData navMeshData, ref Vector3 p)
-    {
-        Vector3 voxel = (p - Global.Bounds.Min) * Global.InverseVoxelSize;
-        for (int i = 0; i < 3; i++)
-        {
-            voxel[i] = MathTool.FloorToInt(voxel[i]);
-        }
+	{
+		Vector3 voxel = (p - navMeshData.BoundsMin) * navMeshData.InverseVoxelSize;
+		for (int i = 0; i < 3; i++)
+		{
+			voxel[i] = MathTool.FloorToInt(voxel[i]);
+		}
 
-        int res = -1;
-        List<int> polys = navMeshData.BVH.Traverse(ref voxel);
-        foreach (var poly in polys)
-        {
-            int ppi = poly * Global.MaxVertCountInPoly * 2;
-            bool inPoly = MathTool.InPoly(ref p, navMeshData.Verts, navMeshData.Polys, ppi);
-            if (inPoly)
-            {
-                res = poly;
-                break;
-            }
-        }
-        
-        ObjectPool.Return(polys);
-        return res;
-    }
+		int res = -1;
+		List<int> polys = navMeshData.BVH.Traverse(ref voxel);
+		foreach (var poly in polys)
+		{
+			int ppi = poly * navMeshData.MaxVertCountInPoly * 2;
+			bool inPoly = MathTool.InPoly(ref p, navMeshData.Verts, navMeshData.Polys, ppi, navMeshData.MaxVertCountInPoly);
+			if (inPoly)
+			{
+				res = poly;
+				break;
+			}
+		}
+
+		ObjectPool.Return(polys);
+		return res;
+	}
 }
